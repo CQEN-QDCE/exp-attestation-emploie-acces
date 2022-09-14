@@ -12,16 +12,15 @@
 # Matériel laboratoire d'electronique
 
 ## Basic Hand Tools / Outillage de main de base
-- Pince à long bec
+- * Pince à long bec
 - Pince à dénuder
-- Pince coupante 
+- * Pince coupante 
 - Outil de sertissage (Crimp tool) 
 - Pinces à épiler (Tweezers set)
-- Jeu de tournevis
-- Fusil à colle chaude + batonnets de colle
-- Jumpers 
-- Pinces crocodiles 
-- Boîte à outils 
+- * Jeu de tournevis
+- * Fusil à colle chaude + batonnets de colle
+- * Jumpers 
+- Pinces crocodiles  
 - Marteau
 
 
@@ -38,27 +37,28 @@
 
 
 ## Prototyping 
-- Plaque d'essais sans soudure (breadboard)
+- * Plaque d'essais sans soudure (breadboard)
 
 
 ## Soldering Tools/Kits
-- Fer à souder / station soudage
-- Étain à souder
-- Flux de soudage à résine
-- Trousse de désoudage 
+- * Fer à souder / station soudage
+- * Étain à souder
+- * Flux de soudage à résine
+- * Trousse de désoudage 
 - Mèche à dessouder (Solder wick / braid)
 - Pompe à dessoulder
 - Nettoyage pour pointes de fer à souder
-- Troisième main  
+- * Troisième main  
 - Tapis en silicone pour fer à souder
 
 ## Power Supply Tools / Bloc d'alimentation
 - Bloc d'alimentation variable 
 - Nobreak
+- * Batteries et support à batteries (9V, 4x AA)
 
 
 ## Testing Tools / Équipement de teste et mésure
-- Multimètre numérique/analogique
+- * Multimètre numérique/analogique
 - Générateur de fonctions
 - Testeur de composants pour semi-conducteurs
 
@@ -72,30 +72,42 @@
 
 ## Sécurité / EPI
 Sécurité électrique (DES - Discharge électrostatique)
-- Lunetes de sécurité 
+- * Lunetes de sécurité 
 - Extincteur chimique sec ABC (Class C – Fires in energized electrical equipment)
     - type ABC dry chemical fire extinguisher, in the 5- to 10-pound range.
 - Détecteur de fumée
 - Fan pour dissipation de fumée de soudure
 - Tapis de travail DES
 - Brassard antistatique
+
+
+## Meubles (changer le titre)
 - Boîte à outils DES
+- Armoire de rangement d'outils 
+- Boîte à classement de composants
 
 
 ## Matériel spécifique à l'expérimentation 
 
-- ABK-704L Barrure à solenoïde 12V  (5V?) 
-- RC522 - lecteur RFID
-- Raspberry Pi 4 
-- Micro SD, min 16Gb
-- Bloc alimentation RPi
-- Arduino Uno
-- ESP8266 / Node MCU  
-- Relais 5V / 12V  
-- Module Blutooth HC-05
-- Piezzo ou buzzer
-- Keypad 4x4
-- LCD 16x2 
+- * ABK-704L Barrure à solenoïde 12V  (5V?) 
+- * RC522 - lecteur RFID
+- * Raspberry Pi 4 
+- * Micro SD, min 16Gb
+- * Bloc alimentation RPi
+- * Arduino Uno
+- * ESP8266 / Node MCU  
+- * Relais 5V / 12V  
+- * Module Blutooth HC-05
+- * Piezzo ou buzzer
+- * Keypad 4x4
+- * LCD 16x2 
+- * Résistences (5% 1/4W): 2 x 100, 2 x 220, 1 x 2.2K, 1x 10k
+- * Capaciteurs: 2 x 22pF, 2 x 0.1μF
+- * Sockets: 1 x 28DIP
+- * Diodes: 1 x 1N4002, 1 x 1N4004
+- * Crystaux de Quartz: 16MHz
+- * DEL (5mm): couleurs assorties 
+- * Régulateur de tension: 7805
 
 
 # Fournisseurs 
@@ -105,7 +117,9 @@ https://www.digikey.ca
 https://www.mouser.ca/  
 https://canada.newark.com  
 https://www.arrow.com/  
+
 https://export.rsdelivers.com/  
+
 https://genesys.ro/preturi/yala-electrica-abk-704l-aparent-12-vcc/
 
 
@@ -239,6 +253,29 @@ https://github.com/souravmishra-msft/Hotel_Room-Access_Management_VerifiableCred
 https://tykn.tech/verifiable-credentials/
 
 https://docs.electionsquebec.qc.ca/ORG/5ee12f8d1df65/Gagnon_Clement_03-11-2019_memoire.pdf
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
