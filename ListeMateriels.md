@@ -46,30 +46,30 @@
 - * Étain à souder
 - * Flux de soudage à résine
 - * Trousse de désoudage 
+- * Troisième main  
 - Mèche à dessouder (Solder wick / braid)
 - Pompe à dessoulder
 - Nettoyeur pour pointes de fer à souder
-- * Troisième main  
 - Tapis de travail en silicone pour soudure électronique
 
 
 ## EPI
-- Lunetes de sécurité
-- Masque anti-fumée 
+- * Lunetes de sécurité
+- * Masque anti-fumée 
 - Gants en caotchuc
 
 ## Outils de main
 
-- Pince à long bec
-- Pince à dénuder
-- Pince coupante 
+- * Pince à long bec
+- * Pince à dénuder
+- * Pince coupante 
+- * Jeu de tournevis
+- * Fusil à colle chaude + batonnets de colle
+- * Jumpers 
+- * Marteau
 - Outil de sertissage (Crimp tool) 
 - Pinces à épiler (Tweezers set)
-- Jeu de tournevis
-- Fusil à colle chaude + batonnets de colle
-- Jumpers 
 - Pinces crocodiles  
-- * Marteau
 
 ## Consommables 
 
