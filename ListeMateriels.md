@@ -21,11 +21,13 @@
 - Tapis de travail DES
 - Brassard antistatique
 
+<!-- ======================================= -->
 
 # Matériels laboratoire d'électronique 
 
 ## Base
 
+- Bloc d'alimentation variable
 - Imprimante 3D
 - Scie circulaire
 - Outil rotatif Dremmel 
@@ -33,19 +35,22 @@
 - Arduino (Uno, nano, Mega, etc...)
 - Proxmark3, Iceman firmware
 
+## Équipement de teste et mésure
+- * Multimètre numérique/analogique
+- Générateur de fonctions
+- Testeur de composants pour semi-conducteurs
 
-### Outils de soudure
-- Soudeuse 
-- Tapis de travail pour soudure électronique
+## Outils de soudure
+
 - * Fer à souder / station soudage
 - * Étain à souder
 - * Flux de soudage à résine
 - * Trousse de désoudage 
 - Mèche à dessouder (Solder wick / braid)
 - Pompe à dessoulder
-- Nettoyage pour pointes de fer à souder
+- Nettoyeur pour pointes de fer à souder
 - * Troisième main  
-- Tapis en silicone pour fer à souder
+- Tapis de travail en silicone pour soudure électronique
 
 
 ## EPI
@@ -77,6 +82,9 @@
 - DEL (5mm): couleurs assorties 
 - Régulateur de tension: 7805
 - Fil 22 AWG
+- * Batteries et support à batteries (9V, 4x AA)
+
+<!-- ======================================= -->
 
 # Matériels spécifiques à l'expérimentation
 
@@ -113,4 +121,3 @@
 - * Vis
 - * Penture
 - * Colle chaude
-

@@ -71,7 +71,7 @@
    
 
 ## Sécurité / EPI
-Sécurité électrique (DES - Discharge électrostatique)
+### Sécurité électrique (DES - Discharge électrostatique)
 - * Lunetes de sécurité 
 - Extincteur chimique sec ABC (Class C – Fires in energized electrical equipment)
     - type ABC dry chemical fire extinguisher, in the 5- to 10-pound range.
@@ -108,6 +108,18 @@ Sécurité électrique (DES - Discharge électrostatique)
 - * Crystaux de Quartz: 16MHz
 - * DEL (5mm): couleurs assorties 
 - * Régulateur de tension: 7805
+- * PLA 3D 
+
+# Logiciels
+
+- Arduino IDE (https://arduino.cc) 
+    * Logiciel d'édition et de 
+- Fritzing (https://fritzing.org/download/)
+- Eagle / Kikad (https://www.kicad.org/)
+- Figma (https://www.figma.com/)
+- Fusion 360, SketchUp ou similaire 
+- VSCode
+- FreeCAD 
 
 
 # Fournisseurs 
@@ -256,7 +268,10 @@ https://docs.electionsquebec.qc.ca/ORG/5ee12f8d1df65/Gagnon_Clement_03-11-2019_m
 
 
 
+# Formations 
 
+Kicad Beginner Tutorial- A Traffic Light for Arduino ( RE-UPLOADED, Twice )
+https://www.youtube.com/watch?v=EPH23zhPg50
 
 
 
