@@ -37,5 +37,9 @@ https://www.youtube.com/watch?v=8xqgdXvn3yw - ver tabmém a introducao ao ESP826
 *Introduction to ESP32 - Getting Started*  
 https://www.youtube.com/watch?v=xPlN_Tk3VLQ
 
+NFC avec Arduino  
+https://werner.rothschopf.net/201703_arduino_esp8266_nfc.htm
+
+
 *TLV Utilities*  
 https://emvlab.org/tlvutils/
