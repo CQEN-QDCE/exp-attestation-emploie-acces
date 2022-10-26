@@ -1,0 +1,18 @@
+@startuml
+title
+    Cas d'utiliation du portefeuille numérique en tant que justificatif d'authentification à partir d'une attestation fournis par le MCN.
+end title
+
+caption Cas d'utilisation du portefeuille numérique pour authentifier un employé.
+
+|#pink|Création des droits d'accès|
+start
+:Authentification Keycloak;
+split
+:Donner accès au lab;
+split again
+:Donner accès à Taiga;
+end split
+|#AntiqueWhite|Émission de la preuve|
+stop
+@enduml
