@@ -1,4 +1,4 @@
-@startuml
+@startuml "port-e cas d'utilisations"
 title
     Port-e
     Cas d'utilisations
@@ -29,22 +29,28 @@ actor "Représentant(e)" as rep
 actor "Administrateur CEAI" as admin #LightGreen
 actor "Employé(e)" as emp #LightGreen
 component "$MobileclientIMG()" as cellCA #LightGreen
-' MobileClient(cellCA, "Portefeuille numérique", "FrontEnd", "appareil de l'employé") #LightGreen
 Blockchain(dltCA, "Blockchain CANdy", "BackEnd", "Registre de confiance") #LightGreen
 
 
 rectangle "ATTRIBUTION D'ACCÈS" {
     package Authentifications as auth1 {
-    usecase "Keycloak Lab CEAI" as UC0 
+        usecase "Keycloak Lab CEAI" as UC0 
     }
     package "Gestionnaire Accès" {
-    usecase "CEAI" as ceai #LightGreen
-    usecase "Taiga" as taiga
-    usecase "Ajouter Membre" as addtaiga
-    usecase "Créer Membre" as createtaiga
-    usecase "Accès physique" as physique
+        usecase "CEAI" as ceai #LightGreen
+        usecase "Taiga" as taiga
+        usecase "Ajouter Membre" as addtaiga
+        usecase "Créer Membre" as createtaiga
+        usecase "Accès physique" as physique
     }
 }
+
+rectangle "ENVOI DE MESSAGES" {
+    package Notifications as notif {
+        usecase "Notifier employés" as UC8 
+    }
+}
+
 
 rectangle "ÉMISSION ACCÈS" {
     package "Libre service de l'émission des accès" {
@@ -57,16 +63,21 @@ rectangle "ÉMISSION ACCÈS" {
 }
 
 rectangle "UTILISATION ACCÈS" {
-    package Authentifications as auth2 {
-    usecase "Keycloak Lab CEAI" as UC1 #Yellow
+    package "Accès virtuel" {
+        package Authentifications as auth2 {
+            usecase "Keycloak Lab CEAI" as UC1 #Yellow
+            APIGateway(virtualVerifierAgent, "Agent vérificateur virtuel", "BackEnd", "Consommateur CQEN vc-auth") #Yellow
+        }
+        usecase "Lab CEAI" as UC2 #LightGreen
+        usecase "Taiga" as UC3
+        usecase "AWS CEAI" as UC5 #LightGreen
+        usecase "OpenShift CEAI" as UC6 #LightGreen
+        usecase "CodeReady CEAI" as UC7 #LightGreen
     }
-    package Accès {
-    usecase "Lab CEAI" as UC2 #LightGreen
-    usecase "Taiga" as UC3
-    usecase "Fausse porte" as UC4
-    usecase "AWS CEAI" as UC5 #LightGreen
-    usecase "OpenShift CEAI" as UC6 #LightGreen
-    usecase "CodeReady CEAI" as UC7 #LightGreen
+    package "Accès physique" {
+        usecase "Fausse porte" as UC4
+        component "Controlleur d'accès physique" as controller
+        APIGateway(physicalVerifierAgent, "Agent vérificateur physique", "BackEnd", "Consommateur CQEN vc-auth") #LightGray
     }
 }
 
@@ -94,37 +105,48 @@ taiga --> createtaiga
 admin --> UC0
 UC0 --> ceai
 
+'Notifier
+admin --> UC8
+rep --> UC8
+adj --> UC8
+UC8 --> issuerAgent
+issuerAgent -left-> cellCA
+
 'ÉMISSION ACCÈS
 'Employé(e)
-emp --> cellCA
+emp -right-> cellCA
 emp --> email
 email --> opt
 opt --> cab2d
 cellCA --> cab2d
 cab2d --> vc 
-'vc --> cellCA
 
 'lien vers l'agent
-cellCA -- issuerAgent
 opt -- issuerAgent
 cab2d -- issuerAgent
 vc -- issuerAgent
 
 'UTILISATIONS ACCÈS
 'Employé(e)
-cellCA --> UC4
-cellCA --> UC1
-UC1 --> UC2
-UC1 --> UC3
+'accès virtuel
+cellCA -right-> UC1
+UC1 -left-> UC2
+UC1 -left-> UC3
+UC1 -- virtualVerifierAgent
+virtualVerifierAgent -- cellCA
 UC2 --> UC5
 UC2 --> UC6
 UC2 --> UC7
 
+'accès physique
+cellCA -right-> UC4
+UC4 -- controller
+controller -- physicalVerifierAgent
+physicalVerifierAgent -left- cellCA
+
 'LIEN VERS LA BLOCKCHAIN
-'vc -- dltCA
 cellCA -- dltCA
-'UC0 -- dltCA
-UC1 -- dltCA
-UC4 -- dltCA
+physicalVerifierAgent -- dltCA
 issuerAgent -- dltCA
+virtualVerifierAgent -- dltCA
 @enduml
