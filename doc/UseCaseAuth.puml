@@ -12,6 +12,8 @@ split
 :Donner accès au lab;
 split again
 :Donner accès à Taiga;
+split again
+:Donner accès physique;
 end split
 |#AntiqueWhite|Émission de la preuve|
 stop

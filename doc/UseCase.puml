@@ -10,30 +10,35 @@ caption Diagramme de cas d'utilisations par rapports aux différents acteurs
 '********************
 'DÉFINITION DES OBJETS DU DIAGRAMME
 '********************
+' Références graphique
+' Define the main location (URL or local file path)
+!define AWSPuml https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v14.0/dist
 
-'Références graphique
-!define AWSPuml https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/master/dist
-
-'Composants graphique
-!includeurl AWSPuml/AWSSimplified.puml
-!includeurl AWSPuml/General/MobileClient.puml
-!includeurl AWSPuml/Blockchain/Blockchain.puml
+' Composants graphique
+' Include main AWSCommon and then resource files
+' !include AWSPuml/AWSCommon.puml
+!include AWSPuml/AWSSimplified.puml
+!include AWSPuml/General/Mobileclient.puml
+!include AWSPuml/Blockchain/Blockchain.puml
+!include AWSPuml/ApplicationIntegration/APIGateway.puml
 
 left to right direction
 actor Directeurs as dir
 actor "Adjoint(e)" as adj
 actor "Représentant(e)" as rep
-actor "Administrateur CEAI" as admin
-actor "Employé(e)" as emp
-MobileClient(cellCA, "Portefeuille numérique", "appareil de l'employé") #LightBlue
-Blockchain(dltCA, "Blockchain CANdy", "Registre de confiance") #LightBlue
+actor "Administrateur CEAI" as admin #LightGreen
+actor "Employé(e)" as emp #LightGreen
+component "$MobileclientIMG()" as cellCA #LightGreen
+' MobileClient(cellCA, "Portefeuille numérique", "FrontEnd", "appareil de l'employé") #LightGreen
+Blockchain(dltCA, "Blockchain CANdy", "BackEnd", "Registre de confiance") #LightGreen
+
 
 rectangle "ATTRIBUTION D'ACCÈS" {
     package Authentifications as auth1 {
-    usecase "Keycloak Lab CEAI" as UC0
+    usecase "Keycloak Lab CEAI" as UC0 
     }
     package "Gestionnaire Accès" {
-    usecase "CEAI" as ceai
+    usecase "CEAI" as ceai #LightGreen
     usecase "Taiga" as taiga
     usecase "Ajouter Membre" as addtaiga
     usecase "Créer Membre" as createtaiga
@@ -43,24 +48,25 @@ rectangle "ATTRIBUTION D'ACCÈS" {
 
 rectangle "ÉMISSION ACCÈS" {
     package "Libre service de l'émission des accès" {
-        usecase "Saisir courriel" as email
-        usecase "Recevoir courriel avec URL OTP" as opt
-        usecase "Lecture code barre" as cab2d
-        usecase "Réception attestation d'accès CQEN" as vc
+        usecase "Saisir courriel" as email #Yellow
+        usecase "Recevoir courriel avec URL OTP" as opt #Yellow
+        usecase "Lecture code barre" as cab2d #Yellow
+        usecase "Réception attestation d'accès CQEN" as vc #Yellow
+        APIGateway(issuerAgent, "Agent émetteur", "BackEnd", "Émetteur CQEN") #Yellow
     }
 }
 
 rectangle "UTILISATION ACCÈS" {
     package Authentifications as auth2 {
-    usecase "Keycloak Lab CEAI" as UC1
+    usecase "Keycloak Lab CEAI" as UC1 #Yellow
     }
     package Accès {
-    usecase "Lab CEAI" as UC2
+    usecase "Lab CEAI" as UC2 #LightGreen
     usecase "Taiga" as UC3
     usecase "Fausse porte" as UC4
-    usecase "AWS CEAI" as UC5
-    usecase "OpenShift CEAI" as UC6
-    usecase "CodeReady CEAI" as UC7
+    usecase "AWS CEAI" as UC5 #LightGreen
+    usecase "OpenShift CEAI" as UC6 #LightGreen
+    usecase "CodeReady CEAI" as UC7 #LightGreen
     }
 }
 
@@ -96,8 +102,13 @@ email --> opt
 opt --> cab2d
 cellCA --> cab2d
 cab2d --> vc 
-vc --> cellCA
+'vc --> cellCA
 
+'lien vers l'agent
+cellCA -- issuerAgent
+opt -- issuerAgent
+cab2d -- issuerAgent
+vc -- issuerAgent
 
 'UTILISATIONS ACCÈS
 'Employé(e)
@@ -110,8 +121,10 @@ UC2 --> UC6
 UC2 --> UC7
 
 'LIEN VERS LA BLOCKCHAIN
-vc -- dltCA
+'vc -- dltCA
 cellCA -- dltCA
-UC0 -- dltCA
+'UC0 -- dltCA
 UC1 -- dltCA
+UC4 -- dltCA
+issuerAgent -- dltCA
 @enduml
