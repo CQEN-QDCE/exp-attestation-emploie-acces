@@ -1,0 +1,5 @@
+*.adoc
+*.ods
+tmp/*
+.DS_Store
+*.env
