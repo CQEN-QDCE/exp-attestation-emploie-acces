@@ -421,7 +421,7 @@ objects:
               - ${NAME}${SUFFIX}
             from:
               kind: ImageStreamTag
-              name: ${SOURCE_IMAGE_NAME}:${TAG_PREFIX}${TAG_NAME}
+              name: ${SOURCE_IMAGE_NAME}:${TAG_NAME}
               namespace: ${IMAGE_NAMESPACE}
 
 parameters:
@@ -485,12 +485,6 @@ parameters:
     description: The name of the source image to use for the service.
     required: true
     value: agent
-
-  - name: TAG_PREFIX
-    displayName: Environment TAG prefix
-    description: The prefix for the TAG name for this environment.
-    required: false
-    value: 
   - name: TAG_NAME
     displayName: Environment TAG name
     description: The TAG name for this environment, e.g., dev, test, prod.
