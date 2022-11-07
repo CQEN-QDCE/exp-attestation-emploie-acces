@@ -1,0 +1,27 @@
+@startuml
+agent "Portefeuille Numérique" as wallet
+agent "RFID Reader" as reader
+agent "M Controller" as controller
+agent ESP8266
+agent Keycloak
+cloud Internet
+
+'**************
+'DÉFINITION DES LIENS
+'**************
+rectangle top {
+wallet --> reader : "Présente token"
+reader --> wallet : "Demande token"
+reader -- controller
+controller -- ESP8266
+ESP8266 -- Internet
+}
+
+rectangle center {
+wallet --> Keycloak : "Présente preuve"
+Keycloak --> wallet : "Demande preuve"
+
+}
+
+
+@enduml
