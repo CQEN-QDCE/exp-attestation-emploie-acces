@@ -4,24 +4,29 @@ agent "RFID Reader" as reader
 agent "M Controller" as controller
 agent ESP8266
 agent Keycloak
+agent "http://" as URL
+agent "Access Denied" as Denied
+agent "Ressource protegé" as Protege
+agent Realm
+agent "Vérificateur /  ACA-Py" as Verif
 cloud Internet
 
 '**************
 'DÉFINITION DES LIENS
 '**************
-rectangle top {
+
 wallet --> reader : "Présente token"
 reader --> wallet : "Demande token"
 reader -- controller
 controller -- ESP8266
 ESP8266 -- Internet
-}
 
-rectangle center {
+
 wallet --> Keycloak : "Présente preuve"
 Keycloak --> wallet : "Demande preuve"
-
-}
-
-
+URL --> Keycloak
+Keycloak --> Denied
+Keycloak <--> Protege
+Keycloak <--> Realm
+Keycloak <--> Verif
 @enduml
