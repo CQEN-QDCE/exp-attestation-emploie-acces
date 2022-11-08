@@ -1,5 +1,4 @@
-@startuml
-agent "Portefeuille Numérique" as wallet
+@startuml ArchitectureGlobal
 agent "RFID Reader" as reader
 agent "M Controller" as controller
 agent ESP8266
@@ -11,22 +10,38 @@ agent Realm
 agent "Vérificateur /  ACA-Py" as Verif
 cloud Internet
 
+'Références graphique
+!define AWSPuml https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/master/dist
+
+'Composants graphique
+!includeurl AWSPuml/AWSSimplified.puml
+!includeurl AWSPuml/General/MobileClient.puml
+!includeurl AWSPuml/Blockchain/Blockchain.puml
+
+left to right direction
+
+MobileClient(cellCA, "Portefeuille numérique", "appareil de l'employé") #LightBlue
+Blockchain(dltCA, "Blockchain CANdy", "Registre de confiance") #LightBlue
+
 '**************
 'DÉFINITION DES LIENS
 '**************
 
-wallet --> reader : "Présente token"
-reader --> wallet : "Demande token"
+cellCA --> reader : "Présente token"
+reader --> cellCA : "Demande token"
 reader -- controller
 controller -- ESP8266
 ESP8266 -- Internet
 
 
-wallet --> Keycloak : "Présente preuve"
-Keycloak --> wallet : "Demande preuve"
+cellCA --> Keycloak : "Présente preuve"
+Keycloak --> cellCA : "Demande preuve"
 URL --> Keycloak
 Keycloak --> Denied
 Keycloak <--> Protege
 Keycloak <--> Realm
 Keycloak <--> Verif
+Verif --> dltCA
+Internet --> Verif : "Journalisation accès physique?"
+
 @enduml
