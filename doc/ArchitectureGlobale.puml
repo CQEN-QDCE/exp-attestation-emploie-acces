@@ -9,6 +9,14 @@ agent "Ressource protegé" as Protege
 agent Realm
 agent "Vérificateur /  ACA-Py" as Verif
 cloud Internet
+agent Emetteur
+actor "Gestionnaire d'accès" as Gestionnaire
+agent "Création du profil usager" as CProfile
+agent Invite
+agent Invitation
+agent Boite
+agent DB
+    
 
 'Références graphique
 !define AWSPuml https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/master/dist
@@ -18,7 +26,7 @@ cloud Internet
 !includeurl AWSPuml/General/MobileClient.puml
 !includeurl AWSPuml/Blockchain/Blockchain.puml
 
-left to right direction
+'left to right direction
 
 MobileClient(cellCA, "Portefeuille numérique", "appareil de l'employé") #LightBlue
 Blockchain(dltCA, "Blockchain CANdy", "Registre de confiance") #LightBlue
@@ -27,13 +35,15 @@ Blockchain(dltCA, "Blockchain CANdy", "Registre de confiance") #LightBlue
 'DÉFINITION DES LIENS
 '**************
 
-cellCA --> reader : "Présente token"
-reader --> cellCA : "Demande token"
-reader -- controller
-controller -- ESP8266
-ESP8266 -- Internet
+'LIENS DU TOP DU DIAGRAMME
+    cellCA --> reader : "Présente token"
+    reader --> cellCA : "Demande token"
+    reader -- controller
+    controller -- ESP8266
+    ESP8266 -- Internet
 
 
+'LIENS DU CENTRE DU DIAGRAMME
 cellCA --> Keycloak : "Présente preuve"
 Keycloak --> cellCA : "Demande preuve"
 URL --> Keycloak
@@ -41,7 +51,20 @@ Keycloak --> Denied
 Keycloak <--> Protege
 Keycloak <--> Realm
 Keycloak <--> Verif
+
+'LIENS DU DROIT DU DIAGRAMME
 Verif --> dltCA
 Internet --> Verif : "Journalisation accès physique?"
 
+'LIENS DU BAS DU DIAGRAMME
+dltCA <--> cellCA
+Emetteur <--> Verif
+Emetteur --> Invitation
+Invitation --> Boite
+Boite --> cellCA
+Emetteur --> DB
+Gestionnaire --> CProfile
+CProfile --> Invite
+Invite --> Emetteur
+CProfile --> DB
 @enduml
