@@ -4,6 +4,81 @@ apiVersion: template.openshift.io/v1
 metadata:
   name: ${NAME}${SUFFIX}
 objects:
+  - kind: ConfigMap
+    apiVersion: v1
+    metadata:
+      name: agent-config-port-e
+      namespace: exp-porte-e-flihp
+      annotations:
+        kubectl.kubernetes.io/last-applied-configuration: >
+          {"apiVersion":"v1","data":{"ledgers-bcreg.yaml":"- id: BCovrinTest\n 
+          is_production: true\n  is_write: true\n  genesis_url:
+          'http://test.bcovrin.vonx.io/genesis'\n- id: SovrinStagingNet\n 
+          is_production: true\n  genesis_url:
+          'https://raw.githubusercontent.com/sovrin-foundation/sovrin/stable/sovrin/pool_transactions_sandbox_genesis'\n-
+          id: CANdyDev\n  is_production: true\n  genesis_url:
+          'https://raw.githubusercontent.com/ICCS-ISAC/dtrust-reconu/main/CANdy/dev/pool_transactions_genesis'\n","ledgers-candy.yaml":"-
+          id: CANdyDev\n  is_production: true\n  is_write: true\n  genesis_url:
+          'https://raw.githubusercontent.com/ICCS-ISAC/dtrust-reconu/main/CANdy/dev/pool_transactions_genesis'\n-
+          id: SovrinStagingNet\n  is_production: true\n  genesis_url:
+          'https://raw.githubusercontent.com/sovrin-foundation/sovrin/stable/sovrin/pool_transactions_sandbox_genesis'\n-
+          id: BCovrinTest\n  is_production: true\n  genesis_url:
+          'http://test.bcovrin.vonx.io/genesis'\n","ledgers.yaml":"- id:
+          SovrinStagingNet\n  is_production: true\n  is_write: true\n  genesis_url:
+          'https://raw.githubusercontent.com/sovrin-foundation/sovrin/stable/sovrin/pool_transactions_sandbox_genesis'\n-
+          id: BCovrinTest\n  is_production: true\n  genesis_url:
+          'http://test.bcovrin.vonx.io/genesis'\n- id: CANdyDev\n  is_production:
+          true\n  genesis_url:
+          'https://raw.githubusercontent.com/ICCS-ISAC/dtrust-reconu/main/CANdy/dev/pool_transactions_genesis'\n"},"kind":"ConfigMap","metadata":{"annotations":{},"creationTimestamp":null,"name":"agent-config-porte","namespace":"e79518-dev"}}
+      managedFields:
+        - manager: oc
+          operation: Update
+          apiVersion: v1
+          fieldsType: FieldsV1
+          fieldsV1:
+            'f:data':
+              .: {}
+              'f:ledgers-bcreg.yaml': {}
+              'f:ledgers-candy.yaml': {}
+              'f:ledgers.yaml': {}
+            'f:metadata':
+              'f:annotations':
+                .: {}
+                'f:kubectl.kubernetes.io/last-applied-configuration': {}
+    data:
+      ledgers-bcreg.yaml: |
+        - id: BCovrinTest
+          is_production: true
+          is_write: true
+          genesis_url: 'http://test.bcovrin.vonx.io/genesis'
+        - id: SovrinStagingNet
+          is_production: true
+          genesis_url: 'https://raw.githubusercontent.com/sovrin-foundation/sovrin/stable/sovrin/pool_transactions_sandbox_genesis'
+        - id: CANdyDev
+          is_production: true
+          genesis_url: 'https://raw.githubusercontent.com/ICCS-ISAC/dtrust-reconu/main/CANdy/dev/pool_transactions_genesis'
+      ledgers-candy.yaml: |
+        - id: CANdyDev
+          is_production: true
+          is_write: true
+          genesis_url: 'https://raw.githubusercontent.com/ICCS-ISAC/dtrust-reconu/main/CANdy/dev/pool_transactions_genesis'
+        - id: SovrinStagingNet
+          is_production: true
+          genesis_url: 'https://raw.githubusercontent.com/sovrin-foundation/sovrin/stable/sovrin/pool_transactions_sandbox_genesis'
+        - id: BCovrinTest
+          is_production: true
+          genesis_url: 'http://test.bcovrin.vonx.io/genesis'
+      ledgers.yaml: |
+        - id: SovrinStagingNet
+          is_production: true
+          is_write: true
+          genesis_url: 'https://raw.githubusercontent.com/sovrin-foundation/sovrin/stable/sovrin/pool_transactions_sandbox_genesis'
+        - id: BCovrinTest
+          is_production: true
+          genesis_url: 'http://test.bcovrin.vonx.io/genesis'
+        - id: CANdyDev
+          is_production: true
+          genesis_url: 'https://raw.githubusercontent.com/ICCS-ISAC/dtrust-reconu/main/CANdy/dev/pool_transactions_genesis'
   - kind: NetworkPolicy
     apiVersion: networking.k8s.io/v1
     metadata:
@@ -150,7 +225,26 @@ objects:
     spec:
       storageClassName: "${TAILS_FILES_VOLUME_CLASS}"
       accessModes:
-        - ReadWriteMany
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: "${TAILS_FILES_VOLUME_SIZE}"
+
+  - kind: PersistentVolumeClaim
+    apiVersion: v1
+    metadata:
+      name: ${NAME}${SUFFIX}-app-config-volume
+      labels:
+        name: ${NAME}${SUFFIX}
+        app: ${APP_NAME}${SUFFIX}
+        app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
+        app-group: ${APP_GROUP}
+        role: ${ROLE}
+        env: ${TAG_NAME}
+    spec:
+      storageClassName: "${TAILS_FILES_VOLUME_CLASS}"
+      accessModes:
+        - ReadWriteOnce
       resources:
         requests:
           storage: "${TAILS_FILES_VOLUME_SIZE}"
@@ -421,7 +515,7 @@ objects:
               - ${NAME}${SUFFIX}
             from:
               kind: ImageStreamTag
-              name: ${SOURCE_IMAGE_NAME}:${TAG_NAME}
+              name: ${SOURCE_IMAGE_NAME}:${TAG_PREFIX}${TAG_NAME}
               namespace: ${IMAGE_NAMESPACE}
 
 parameters:
@@ -485,6 +579,12 @@ parameters:
     description: The name of the source image to use for the service.
     required: true
     value: agent
+
+  - name: TAG_PREFIX
+    displayName: Environment TAG prefix
+    description: The prefix for the TAG name for this environment.
+    required: false
+    value: 
   - name: TAG_NAME
     displayName: Environment TAG name
     description: The TAG name for this environment, e.g., dev, test, prod.
@@ -638,20 +738,20 @@ parameters:
       For transaction Authors, specify the alias of the Endorser connection that will be used to endorse transactions.
       This MUST match the setting used for the alias of the connection when establishing the connection with the Endorser.
       Example; 'Endorser'
-    required: true
+    required: false
     value:
   - name: ACAPY_AUTO_REQUEST_ENDORSEMENT
     displayName: Auto Request Endorsement
     description:
       For Authors, specify whether to automatically request endorsement for all transactions.  If not specified, the controller must invoke the request endorse operation for each transaction.
     required: true
-    value: 'true'
+    value: 'false'
   - name: ACAPY_AUTO_WRITE_TRANSACTIONS
     displayName: Auto Write Transactions
     description:
       For Authors, specify whether to automatically write any endorsed transactions.  If not specified, the controller must invoke the write transaction operation for each transaction.
     required: true
-    value: 'true'
+    value: 'false'
   - name: ACAPY_CREATE_REVOCATION_TRANSACTIONS
     displayName: Auto Create Revocation Transactions
     description:

@@ -1,5 +1,5 @@
 #=========================================================
-# OpenShift template parameters for: CECI EST UN SIMPLE EXEMPLE
+# OpenShift template parameters for:
 # Component: .
 # Template File: ../openshift/templates/issuer-agent/issuer-agent-deploy.yaml
 #=========================================================
@@ -15,6 +15,7 @@ ROUTE_TIMEOUT=240s
 IMAGE_NAMESPACE=exp-porte-e-flihp
 NAMESPACE_NAME=exp-porte-e-flihp
 SOURCE_IMAGE_NAME=aries-cloudagent
+TAG_PREFIX=
 TAG_NAME=py36-1.16-1_0.7.5
 APP_CONFIG_MAP_NAME=agent-config
 APP_CONFIG_MOUNT_PATH=/home/indy/
@@ -22,12 +23,12 @@ ACAPY_LABEL=PORT-E (CQEN)
 ACAPY_READ_ONLY_LEDGER=false
 AGENT_BASE_URL=https://port-e-agent-dev.apps.exp.openshift.cqen.ca
 ACAPY_IMAGE_URL=https://raw.githubusercontent.com/CQEN-QDCE/exp-attestation-emploie-acces/prod/images/favicon.ico
-# WEBHOOK_URL=to-be-defined
+WEBHOOK_URL=http://port-e-controller-dev.apps.exp.openshift.cqen.ca:8080
 AGENT_ADMIN_PORT=8024
 # ADMIN_API_KEY=[a-zA-Z0-9]{16}
 API_HOST=api
 AGENT_HTTP_PORT=8021
-ACAPY_GENESIS_TRANSACTIONS_LIST=https://raw.githubusercontent.com/ICCS-ISAC/dtrust-reconu/main/CANdy/dev/pool_transactions_genesis
+ACAPY_GENESIS_TRANSACTIONS_LIST=ledgers-candy.yaml
 ACAPY_LOG_LEVEL=WARNING
 ACAPY_INVITE_PUBLIC=true
 ACAPY_PUBLIC_INVITES=true
@@ -42,10 +43,10 @@ ACAPY_AUTO_VERIFY_PRESENTATION=true
 ACAPY_AUTO_PROVISION=true
 ACAPY_NOTIFY_REVOCATION=false
 ACAPY_ENDORSER_ROLE=Endorser
-ACAPY_ENDORSER_ALIAS=Endorser
-ACAPY_AUTO_REQUEST_ENDORSEMENT=true
-ACAPY_AUTO_WRITE_TRANSACTIONS=true
-ACAPY_CREATE_REVOCATION_TRANSACTIONS=true
+ACAPY_ENDORSER_ALIAS=
+ACAPY_AUTO_REQUEST_ENDORSEMENT=false
+ACAPY_AUTO_WRITE_TRANSACTIONS=false
+ACAPY_CREATE_REVOCATION_TRANSACTIONS=false
 ACAPY_WALLET_TYPE=askar
 ACAPY_WALLET_STORAGE_TYPE=postgres_storage
 WALLET_HOST=wallet
@@ -56,11 +57,11 @@ WALLET_CREDENTIAL_STORE_NAME=port-e-agent-wallet-credentials
 # WALLET_KEY=[a-zA-Z0-9]{10}
 # WALLET_SEED=[a-zA-Z0-9]{32}
 # WALLET_DID=[a-zA-Z0-9]{16}
-WALLET_SUFFIX=porte
+WALLET_SUFFIX=-port-e
 TAILS_FILES_DIR=/home/indy/.indy_client/tails
 TAILS_FILES_VOLUME_CLASS=gp2
 TAILS_FILES_VOLUME_SIZE=1Gi
-# ACAPY_TAILS_SERVER_BASE_URL=to-be-defined
+ACAPY_TAILS_SERVER_BASE_URL=https://tails-dev.vonx.io
 CPU_REQUEST=100m
 CPU_LIMIT=250m
 MEMORY_REQUEST=128Mi
