@@ -1,3 +1,1 @@
-oc import-image bcgovimages/aries-cloudagent:py36-1.16-1_0.7.5 --confirm --scheduled=true
-oc process -f issuer-agent-deploy-PF.yaml --param-file=issuer-agent-deploy.port-e.env | oc apply -f -
-# oc process -f issuer-agent-deploy.yaml --param-file=issuer-agent-deploy.port-e.env
+oc process -f aries-issuer.yaml --param-file=aries-issuer.candy-dev.params | oc apply -f -

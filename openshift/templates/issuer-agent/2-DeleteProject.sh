@@ -1,1 +1,1 @@
-oc delete project exp-porte-e-flihp
+oc delete project exp-port-e-2
