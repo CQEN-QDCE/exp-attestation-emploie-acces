@@ -1,23 +1,5 @@
 @startuml ArchitectureGlobal
-agent "RFID Reader" as reader
-agent "M Controller" as controller
-agent ESP8266
-agent Keycloak
-agent "http://" as URL
-agent "Access Denied" as Denied
-agent "Ressource protegé" as Protege
-agent Realm
-agent "Vérificateur /  ACA-Py" as Verif
-cloud Internet
-agent Emetteur
-actor "Gestionnaire d'accès" as Gestionnaire
-agent "Création du profil usager" as CProfile
-agent Invite
-agent Invitation
-agent Boite
-agent DB
     
-
 'Références graphique
 !define AWSPuml https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/master/dist
 
@@ -28,43 +10,79 @@ agent DB
 
 'left to right direction
 
-MobileClient(cellCA, "Portefeuille numérique", "appareil de l'employé") #LightBlue
-Blockchain(dltCA, "Blockchain CANdy", "Registre de confiance") #LightBlue
+'**************
+'DÉFINITION DES REGROUPEMENTS
+'**************
+
+rectangle "Controle d'accèss physique" {
+    agent "RFID Reader" as reader
+    agent "Micro Controller" as mcontrol
+    agent ESP8266
+    cloud Internet
+    MobileClient(cellcf, "Portefeuille numérique", "appareil de l'employé") #LightBlue
+    }
+
+rectangle "Contrôle d'accèss virtuel"{
+    agent Keycloak
+    agent "http://" as URL
+    agent "Access Denied" as Denied
+    agent "Ressource protegé" as Protege
+    agent Realm
+    agent "Vérificateur /  ACA-Py" as Verifv
+    MobileClient(cellcv, "Portefeuille numérique", "appareil de l'employé") #LightBlue
+    }
+
+rectangle "Gestionnaire d'accès" {
+    agent Emetteur
+    actor "Gestionnaire d'accès" as Gestionnaire
+    agent "Création du profil usager" as CProfile
+    agent Invite
+    agent Invitation
+    agent Boite
+    agent "Agent ACA-Py" as ACAPYga
+    database "DB" as DB #LightBlue
+    MobileClient(cellga, "Portefeuille numérique", "appareil de l'employé") #LightBlue
+    Blockchain(dltCA, "Blockchain CANdy", "Registre de confiance") #LightBlue
+    }
+
+agent "Agent Aca-Py" as 1acapy
 
 '**************
 'DÉFINITION DES LIENS
 '**************
 
-'LIENS DU TOP DU DIAGRAMME
-    cellCA --> reader : "Présente token"
-    reader --> cellCA : "Demande token"
-    reader -- controller
-    controller -- ESP8266
+'LIENS DU CONTROLE D'ACCES PHYSIQUE
+    cellcf --> reader : "Présente token"
+    reader --> cellcf : "Demande token"
+    reader -- mcontrol
+    mcontrol -- ESP8266
     ESP8266 -- Internet
 
 
-'LIENS DU CENTRE DU DIAGRAMME
-cellCA --> Keycloak : "Présente preuve"
-Keycloak --> cellCA : "Demande preuve"
-URL --> Keycloak
+'LIENS DU CONTROLE D'ACCES VIRTUEL
+cellcv --> Keycloak : "Présente preuve"
+Keycloak --> cellcv : "Demande preuve"
 Keycloak --> Denied
 Keycloak <--> Protege
 Keycloak <--> Realm
-Keycloak <--> Verif
+Keycloak <--> Verifv
+URL --> Keycloak
 
-'LIENS DU DROIT DU DIAGRAMME
-Verif --> dltCA
-Internet --> Verif : "Journalisation accès physique?"
+'LIENS SANS REGROUPEMENT AU DROIT DU DIAGRAMME
+Internet --> 1acapy
+1acapy --> dltCA  : "Journalisation accès physique?"
 
-'LIENS DU BAS DU DIAGRAMME
-dltCA <--> cellCA
-Emetteur <--> Verif
+'LIENS De l'ÉMETTEUR
+dltCA <--> cellga
+Emetteur <--> ACAPYga
 Emetteur --> Invitation
 Invitation --> Boite
-Boite --> cellCA
+Boite --> cellga
 Emetteur --> DB
 Gestionnaire --> CProfile
 CProfile --> Invite
 Invite --> Emetteur
 CProfile --> DB
+Verifv --> dltCA
+
 @enduml

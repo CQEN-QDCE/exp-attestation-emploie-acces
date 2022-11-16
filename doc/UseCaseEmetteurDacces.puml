@@ -1,4 +1,4 @@
-@startuml
+@startuml "Posseder l'accès"
 
 '**************
 'PROCESSUS DE VÉRIFICATION
@@ -6,17 +6,18 @@
 caption "Posséder l'accès"
 actor "Employé" as empl
 actor "Administrateur d'accès" as admin
-agent "Donner accès" as donne
-agent "Télécharger App Porte:E" as app
-agent "Recevoir courriel de vérification" as verif
-agent "Lire code QR" as scan
-agent "Autodemander invitation" as autodemande
+usecase "Donner accès" as donne
+usecase "Télécharger App Porte:E" as app
+usecase "Recevoir courriel de vérification" as verif
+usecase "Lire code QR" as scan
+usecase "Autodemander invitation" as autodemande
 
 admin --> donne
 donne -|> autodemande
 empl --> app
-app --> autodemande
+empl --> autodemande
 autodemande --> verif
 verif --> scan
+app --> fin
 scan --> fin
 @enduml
