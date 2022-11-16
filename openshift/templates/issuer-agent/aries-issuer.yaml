@@ -17,7 +17,7 @@ objects:
       app: ${APP_NAME}${SUFFIX}
       app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
       app-group: ${APP_GROUP}
-      role: ${ROLE}
+      role: tails
       env: ${ENV_NAME}
   spec:
     storageClassName: ${STORAGE_CLASS_NAME}
@@ -36,7 +36,7 @@ objects:
       app: ${APP_NAME}${SUFFIX}
       app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
       app-group: ${APP_GROUP}
-      role: ${ROLE}
+      role: tails
       env: ${ENV_NAME}
   spec:
     ports:
@@ -63,7 +63,7 @@ objects:
       app: ${APP_NAME}${SUFFIX}
       app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
       app-group: ${APP_GROUP}
-      role: ${ROLE}
+      role: tails
       env: ${ENV_NAME}
   spec:
     strategy:
@@ -115,7 +115,7 @@ objects:
       app: ${APP_NAME}${SUFFIX}
       app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
       app-group: ${APP_GROUP}
-      role: ${ROLE}
+      role: tails
       env: ${ENV_NAME}
   spec:
     host: ${APP_NAME}-tails.${APP_DOMAIN}
@@ -151,7 +151,7 @@ objects:
       app: ${APP_NAME}${SUFFIX}
       app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
       app-group: ${APP_GROUP}
-      role: ${ROLE}
+      role: wallet
       env: ${ENV_NAME}
   spec:
     storageClassName: ${STORAGE_CLASS_NAME}
@@ -170,7 +170,7 @@ objects:
       app: ${APP_NAME}${SUFFIX}
       app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
       app-group: ${APP_GROUP}
-      role: ${ROLE}
+      role: wallet
       env: ${ENV_NAME}
   spec:
     ports:
@@ -197,7 +197,7 @@ objects:
       app: ${APP_NAME}${SUFFIX}
       app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
       app-group: ${APP_GROUP}
-      role: ${ROLE}
+      role: wallet
       env: ${ENV_NAME}
   spec:
     strategy:
@@ -612,7 +612,7 @@ objects:
       app: ${APP_NAME}${SUFFIX}
       app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
       app-group: ${APP_GROUP}
-      role: ${ROLE}
+      role: wallet
       env: ${ENV_NAME}
     annotations:
       template.openshift.io/expose-database-user: "{.data['database-user']}"
@@ -676,7 +676,7 @@ parameters:
   displayName: Suffix
   description: A suffix applied to all the objects in this template.
   required: false
-  value: '-port-e'
+  value: ''
 - name: ROLE
   displayName: Role
   description: The role of this service within the application - used for Network Policies.
@@ -704,7 +704,7 @@ parameters:
   displayName: PostgreSQL name
   description: The name assigned to all PostgreSQL objects defined in this template.
   required: true
-  value: 'postgres'
+  value: 'wallet'
 - name: POSTGRESQL_PASSWORD
   displayName: PostgreSQL connection password
   description: Password for the PostgreSQL connection user. Needs to be basee64 encoded.
