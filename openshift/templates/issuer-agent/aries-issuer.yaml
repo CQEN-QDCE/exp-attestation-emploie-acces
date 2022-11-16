@@ -355,7 +355,7 @@ objects:
       description: Defines how to deploy the application server
       app.openshift.io/connects-to: >-
         [{"apiVersion":"apps.openshift.io/v1","kind":"DeploymentConfig","name":"${POSTGRESQL_NAME}"},
-        {"apiVersion":"apps.openshift.io/v1","kind":"DeploymentConfig","name":"${API_HOST}${SUFFIX}"}]
+        {"apiVersion":"apps.openshift.io/v1","kind":"DeploymentConfig","name":"${TAILS_SERVER_NAME}"}]
   spec:
     strategy:
       type: Recreate
@@ -375,7 +375,8 @@ objects:
         annotations:
           description: Defines how to deploy the ${ACAPY_NAME} server
           app.openshift.io/connects-to: >-
-            [{"apiVersion":"apps.openshift.io/v1","kind":"DeploymentConfig","name":"${POSTGRESQL_NAME}"}]
+            [{"apiVersion":"apps.openshift.io/v1","kind":"DeploymentConfig","name":"${POSTGRESQL_NAME}"},
+            {"apiVersion":"apps.openshift.io/v1","kind":"DeploymentConfig","name":"${TAILS_SERVER_NAME}"}]
       spec:
         containers:
           - name: ${ACAPY_NAME}
