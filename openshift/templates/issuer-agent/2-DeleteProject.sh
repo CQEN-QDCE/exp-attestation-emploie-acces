@@ -1,1 +1,1 @@
-oc delete project exp-port-e-2
+oc delete project exp-port-e
