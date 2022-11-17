@@ -247,6 +247,7 @@ objects:
             successThreshold: 1
             failureThreshold: 3
             exec:
+# TODO, chercher comment utiliser les variables de nos secret au lieu de coder en dur pour la commande du readinessProbe
 #              command:
 #                - /bin/sh
 #                - -i
