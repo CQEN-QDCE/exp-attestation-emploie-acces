@@ -33,12 +33,12 @@ rectangle "Contrôle d'accèss virtuel"{
     }
 
 rectangle "Gestionnaire d'accès" {
-    agent Emetteur
+    agent "Vérification du courriel" as Emetteur
     actor "Gestionnaire d'accès" as Gestionnaire
     agent "Création du profil usager" as CProfile
-    agent Invite
-    agent Invitation
-    agent Boite
+    actor Employé as Employe
+    agent "Agent mediateur" as AM
+    agent "Boite eMail" as Boite
     agent "Agent ACA-Py" as ACAPYga
     database "DB" as DB #LightBlue
     MobileClient(cellga, "Portefeuille numérique", "appareil de l'employé") #LightBlue
@@ -73,16 +73,20 @@ Internet --> 1acapy
 1acapy --> dltCA  : "Journalisation accès physique?"
 
 'LIENS De l'ÉMETTEUR
-dltCA <--> cellga
 Emetteur <--> ACAPYga
-Emetteur --> Invitation
-Invitation --> Boite
-Boite --> cellga
-Emetteur --> DB
-Gestionnaire --> CProfile
-CProfile --> Invite
-Invite --> Emetteur
-CProfile --> DB
+Emetteur -left-> DB
+Gestionnaire -down-> CProfile : "0- Donner accès"
+Employe -down-> Emetteur : "1-Saisir son courriel"
+Emetteur -down-> Boite : "2-Envoyer lien à utilisation unique"
+Employe -down-> Boite : "3 Lire courriel et clic sur lien unique "
+Boite -up-> Emetteur : "4-Affichage du code à barre"
+cellga -left-> Emetteur : "5-Lecture du code à barre"
+cellga <--> AM : "6-Réception attestation d'accès 1/2"
+AM <--> ACAPYga : "7-Réception attestation d'accès 2/2"
+CProfile -right-> DB
+dltCA <--> cellga
 Verifv --> dltCA
+AM <--> dltCA
+ACAPYga <--> dltCA
 
 @enduml
