@@ -1,0 +1,32 @@
+@startuml SchemaEmetteur
+autonumber
+
+'*************
+'Déclaration de participants
+'*************
+participant "Gestionnaire \nd'accès" as Gestionnaire
+database "DB" as DB #LightBlue
+actor Employé as Employe
+participant Émetteur as Emetteur
+participant "Boîte eMail" as Boite
+participant "Portefeuille \nNumérique" as wallet    
+participant "Agent mediateur" as AM
+participant "ACA-Py" as ACAPY   
+collections CANdy
+'**************
+'DÉFINITION DES LIENS
+'**************
+Gestionnaire -> DB :Création du profil usager
+Gestionnaire -> Employe : Donner accès
+Employe -> Emetteur : Saisir son courriel
+Emetteur <-> DB : Vérification de l'accès
+Emetteur -> Boite : Envoyer lien à utilisation unique
+Employe -> Boite : Lire courriel et clic sur lien unique
+Emetteur -> Boite : Affichage du code à barre
+wallet -> Boite : Lecture du code à barre
+wallet <-> AM : Réception attestation d'accès
+wallet -> CANdy : MAJ Réception attestation d'accès
+AM <-> ACAPY : Réception attestation d'accès 
+AM <-> CANdy : MAJ Réception attestation d'accès
+
+@enduml
