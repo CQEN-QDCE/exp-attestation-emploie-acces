@@ -1,0 +1,3 @@
+[submodule "indy-email-verification"]
+	path = indy-email-verification
+	url = https://github.com/CQEN-QDCE/indy-email-verification.git
