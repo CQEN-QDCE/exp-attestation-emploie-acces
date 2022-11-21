@@ -48,60 +48,60 @@ objects:
 #         - app=${APP_NAME}${SUFFIX}
 #         - env=${TAG_NAME}
 #         - $namespace=${NAMESPACE_NAME}-${TAG_NAME}
-- kind: NetworkPolicy
-  apiVersion: networking.k8s.io/v1
-  metadata:
-    name: ${CONTROLLER_NAME}-allow-ingress
-    labels:
-      name: ${CONTROLLER_NAME}-allow-ingress
-      app: ${APP_NAME}
-      app-group: ${APP_GROUP}
-      role: ${ROLE}
-      env: ${TAG_NAME}
-  spec:
-    description: |
-      Allow traffic from routes into the ${ROLE} container(s).
-    ingress:
-      - from:
-          - namespaceSelector:
-              matchLabels:
-                network.openshift.io/policy-group: ingress
-    podSelector:
-      matchLabels:
-        role: ${ROLE}
-        app: ${APP_NAME}
-        env: ${TAG_NAME}
-    policyTypes:
-      - Ingress
-- kind: NetworkPolicy
-  apiVersion: networking.k8s.io/v1
-  metadata:
-    name: ${CONTROLLER_NAME}
-    labels:
-      name: ${CONTROLLER_NAME}
-      app: ${APP_NAME}
-      env: ${TAG_NAME}
-  spec:
-    description: Allow the agent to access the service.
-    ingress:
-      - from:
-        - podSelector:
-            matchLabels:
-              role: ${AGENT_ROLE}
-              app: ${APP_NAME}
-              env: ${TAG_NAME}
-          namespaceSelector:
-            matchLabels:
-              name: ${NAMESPACE_NAME}
-              environment: ${TAG_NAME}
-        ports:
-          - protocol: TCP
-            port: ${{PORT}}
-    podSelector:
-      matchLabels:
-        role: ${ROLE}
-        app: ${APP_NAME}
-        env: ${TAG_NAME}
+#- kind: NetworkPolicy
+#  apiVersion: networking.k8s.io/v1
+#  metadata:
+#    name: ${CONTROLLER_NAME}-allow-ingress
+#    labels:
+#      name: ${CONTROLLER_NAME}-allow-ingress
+#      app: ${APP_NAME}
+#      app-group: ${APP_GROUP}
+#      role: ${ROLE}
+#      env: ${TAG_NAME}
+#  spec:
+#    description: |
+#      Allow traffic from routes into the ${ROLE} container(s).
+#    ingress:
+#      - from:
+#          - namespaceSelector:
+#              matchLabels:
+#                network.openshift.io/policy-group: ingress
+#    podSelector:
+#      matchLabels:
+#        role: ${ROLE}
+#        app: ${APP_NAME}
+#        env: ${TAG_NAME}
+#    policyTypes:
+#      - Ingress
+#- kind: NetworkPolicy
+#  apiVersion: networking.k8s.io/v1
+#  metadata:
+#    name: ${CONTROLLER_NAME}
+#    labels:
+#      name: ${CONTROLLER_NAME}
+#      app: ${APP_NAME}
+#      env: ${TAG_NAME}
+#  spec:
+#    description: Allow the agent to access the service.
+#    ingress:
+#      - from:
+#        - podSelector:
+#            matchLabels:
+#              role: ${AGENT_ROLE}
+#              app: ${APP_NAME}
+#              env: ${TAG_NAME}
+#          namespaceSelector:
+#            matchLabels:
+#              name: ${NAMESPACE_NAME}
+#              environment: ${TAG_NAME}
+#        ports:
+#          - protocol: TCP
+#            port: ${{PORT}}
+#    podSelector:
+#      matchLabels:
+#        role: ${ROLE}
+#        app: ${APP_NAME}
+#        env: ${TAG_NAME}
 - kind: Service
   apiVersion: v1
   metadata:
@@ -132,7 +132,7 @@ objects:
       role: ${ROLE}
       env: ${TAG_NAME}
   spec:
-    host: ${APPLICATION_DOMAIN}
+    host: ${APP_DOMAIN}
     port:
       targetPort: ${CONTROLLER_NAME}${SUFFIX}
     tls:
@@ -197,7 +197,7 @@ objects:
           - name: AGENT_ADMIN_API_KEY
             valueFrom:
               secretKeyRef:
-                name: ${AGENT_SERVICE_NAME}${SUFFIX}-api
+                name: ${AGENT_SERVICE_NAME}
                 key: admin-api-key
           - name: EMAIL_HOST
             valueFrom:
@@ -209,17 +209,17 @@ objects:
           - name: DB_USER
             valueFrom:
               secretKeyRef:
+                name: ${POSTGRESQL_NAME}
                 key: database-user
-                name: ${DATABASE_SERVICE_NAME}
           - name: DB_PASSWORD
             valueFrom:
               secretKeyRef:
+                name: ${POSTGRESQL_NAME}
                 key: database-password
-                name: ${DATABASE_SERVICE_NAME}
           - name: DB_PORT
             value: ${DATABASE_PORT}
           - name: DB_HOST
-            value: ${DATABASE_SERVICE_NAME}
+            value: ${POSTGRESQL_NAME}
           - name: EMAIL_PORT
             value: ${EMAIL_PORT}
           - name: EMAIL_USE_SSL
@@ -274,7 +274,7 @@ objects:
           namespace: ${IMAGE_NAMESPACE}
 
 parameters:
-- name: NAME
+- name: CONTROLLER_NAME
   displayName: Name
   description: The name assigned to all the objects defined in this template.
   required: true
@@ -314,7 +314,7 @@ parameters:
   description: The name of the agent service
   required: true
   value: email-verification-agent
-- name: APPLICATION_DOMAIN
+- name: APP_DOMAIN
   displayName: Application Hostname
   description: The exposed hostname that will route to the service, if left blank a value will be defaulted.
   required: false
@@ -371,7 +371,7 @@ parameters:
   displayName: Database Port
   required: true
   value: "5432"
-- name: DATABASE_SERVICE_NAME
+- name: POSTGRESQL_NAME
   displayName: Database Service Name
   required: true
   value: email-verification-service-db

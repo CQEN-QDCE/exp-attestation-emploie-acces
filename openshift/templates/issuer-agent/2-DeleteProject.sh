@@ -1,1 +1,1 @@
-oc delete project exp-port-e-agent
+oc delete project exp-port-e-issuer
