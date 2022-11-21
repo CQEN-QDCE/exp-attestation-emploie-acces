@@ -1,0 +1,805 @@
+kind: Template
+apiVersion: template.openshift.io/v1
+metadata:
+  name: ${APP_NAME}
+  annotations:
+    description: Agent controlleur Aries supportant la révocation basé sur Aries Cloud Agent Python (ACA-Py).
+objects:
+
+######################################################################
+# Database PostgreSQL
+######################################################################
+- kind: PersistentVolumeClaim
+  apiVersion: v1
+  metadata:
+    name: ${POSTGRESQL_NAME}-files
+    labels:
+      name: ${POSTGRESQL_NAME}-files
+      app: ${APP_NAME}${SUFFIX}
+      app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
+      app-group: ${APP_GROUP}
+      role: wallet
+      env: ${ENV_NAME}
+  spec:
+    storageClassName: ${STORAGE_CLASS_NAME}
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${POSTGRESQL_VOLUME_SIZE}
+
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: ${POSTGRESQL_NAME}
+    labels:
+      name: ${POSTGRESQL_NAME}
+      app: ${APP_NAME}${SUFFIX}
+      app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
+      app-group: ${APP_GROUP}
+      role: wallet
+      env: ${ENV_NAME}
+  spec:
+    ports:
+    - name: ${POSTGRESQL_NAME}
+      protocol: TCP
+      port: ${{POSTGRESQL_PORT}}
+      targetPort: ${{POSTGRESQL_PORT}}
+      nodePort: 0
+    selector:
+      name: ${POSTGRESQL_NAME}
+    type: ClusterIP
+    sessionAffinity: None
+  status:
+    loadBalancer: {}
+
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    name: ${POSTGRESQL_NAME}
+    annotations:
+      template.alpha.openshift.io/wait-for-ready: 'true'
+    labels:
+      name: ${POSTGRESQL_NAME}
+      app: ${APP_NAME}${SUFFIX}
+      app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
+      app-group: ${APP_GROUP}
+      role: wallet
+      env: ${ENV_NAME}
+  spec:
+    strategy:
+      type: Recreate
+    triggers:
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - ${POSTGRESQL_NAME}
+        from:
+          kind: ImageStreamTag
+          name: postgresql:latest
+          namespace: openshift
+        lastTriggeredImage: ''
+    - type: ConfigChange
+    replicas: 1
+    selector:
+      name: ${POSTGRESQL_NAME}
+    template:
+      metadata:
+        labels:
+          name: ${POSTGRESQL_NAME}
+      spec:
+        containers:
+        - name: ${POSTGRESQL_NAME}
+          image:
+          ports:
+          - containerPort: ${{POSTGRESQL_PORT}}
+            protocol: TCP
+          readinessProbe:
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+            exec:
+# TODO, chercher comment utiliser les variables de nos secret au lieu de coder en dur pour la commande du readinessProbe
+#              command:
+#                - /bin/sh
+#                - -i
+#                - -c
+#                - psql -h 127.0.0.1 -U $POSTGRESQL_USER -d $POSTGRESQL_DATABASE_NAME
+#                - psql -h 0.0.0.0 -U $POSTGRESQL_USER -d $POSTGRESQL_DATABASE_NAME
+#                - psql -w -U $POSTGRESQL_USER -d $POSTGRESQL_DATABASE_NAME
+#                  -c 'SELECT 1'
+#              command: ["psql", "-w", "-U", ${{POSTGRESQL_USER}}, "-d", ${{POSTGRESQL_DATABASE_NAME}}, "-c", "SELECT 1"]
+              command: ["psql", "-w", "-U", "dbuser", "-d", "postgres", "-c", "SELECT 1"]
+          livenessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 120
+            timeoutSeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          env:
+          - name: POSTGRESQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: ${POSTGRESQL_NAME}
+                key: database-user
+          - name: POSTGRESQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: ${POSTGRESQL_NAME}
+                key: database-password
+          - name: POSTGRESQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: ${POSTGRESQL_NAME}
+                key: database-name
+          - name: POSTGRESQL_ADMIN_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: ${POSTGRESQL_NAME}
+                key: database-admin-password                
+          volumeMounts:
+          - name: ${POSTGRESQL_NAME}-files
+            mountPath: "/var/lib/pgsql/data"
+          terminationMessagePath: "/dev/termination-log"
+          imagePullPolicy: IfNotPresent
+          capabilities: {}
+          securityContext:
+            capabilities: {}
+            privileged: false
+        volumes:
+        - name: ${POSTGRESQL_NAME}-files
+          persistentVolumeClaim:
+            claimName: ${POSTGRESQL_NAME}-files
+        restartPolicy: Always
+        dnsPolicy: ClusterFirst
+  status: {}
+
+######################################################################
+# Controlleur Service de Vérification de Courriel
+######################################################################
+- kind: ImageStream
+  apiVersion: v1
+  metadata:
+    name: ${CONTROLLER_NAME}
+    labels:
+      name: ${CONTROLLER_NAME}
+      app: ${APP_NAME}${SUFFIX}
+      app-group: ${APP_GROUP}
+      role: ${ROLE}
+      env: ${ENV_NAME}
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: ${CONTROLLER_NAME}
+    labels:
+      name: ${CONTROLLER_NAME}
+      app: ${APP_NAME}${SUFFIX}
+      app-group: ${APP_GROUP}
+      role: ${ROLE}
+      env: ${ENV_NAME}
+  spec:
+    triggers:
+      - type: ImageChange
+      - type: ConfigChange
+    runPolicy: Serial
+    source:
+      type: Git
+      git:
+        uri: ${GIT_REPO_URL}
+        ref: ${GIT_REF}
+      contextDir: ${SOURCE_CONTEXT_DIR}
+    strategy:
+      type: Source
+      sourceStrategy:
+        from:
+          kind: ${SOURCE_IMAGE_KIND}
+          name: ${SOURCE_IMAGE_NAME}:${SOURCE_IMAGE_TAG}
+        env:
+          - name: PIP_INDEX_URL
+            value: ${PIP_INDEX_URL}
+    output:
+      to:
+        kind: ImageStreamTag
+        name: ${IMAGE_NAME}:${IMAGE_TAG}
+- kind: NetworkPolicy
+  apiVersion: networking.k8s.io/v1
+  metadata:
+    name: ${CONTROLLER_NAME}
+    labels:
+      name: ${CONTROLLER_NAME}
+      app: ${APP_NAME}${SUFFIX}
+      app-group: ${APP_GROUP}
+      role: ${ROLE}
+      env: ${ENV_NAME}
+  spec:
+    description: |
+      Allow the API to access the agent admin interface.
+    ingress:
+      - from:
+          - podSelector:
+              matchLabels:
+                role: ${API_ROLE}
+                app: ${APP_NAME}${SUFFIX}
+                env: ${ENV_NAME}
+            namespaceSelector:
+              matchLabels:
+                environment: ${ENV_NAME}
+        ports:
+          - protocol: TCP
+            port: ${{CONTROLLER_ADMIN_PORT}}
+    podSelector:
+      matchLabels:
+        role: ${ROLE}
+        app: ${APP_NAME}${SUFFIX}
+        env: ${ENV_NAME}
+
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: ${CONTROLLER_NAME}
+    labels:
+      name: ${CONTROLLER_NAME}
+      app: ${APP_NAME}${SUFFIX}
+      app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
+      app-group: ${APP_GROUP}
+      role: ${ROLE}
+      env: ${ENV_NAME}
+  spec:
+    selector:
+      name: ${CONTROLLER_NAME}
+    ports:
+      - name: '3000'
+        protocol: TCP
+        port: ${{CONTROLLER_ADMIN_PORT}}
+        targetPort: ${{CONTROLLER_ADMIN_PORT}}
+      - name: '8000'
+        protocol: TCP
+        port: ${{AGENT_HTTP_PORT}}
+        targetPort: ${{AGENT_HTTP_PORT}}
+
+- kind: Route
+  apiVersion: v1
+  metadata:
+    name: ${CONTROLLER_NAME}
+    labels:
+      name: ${CONTROLLER_NAME}-http
+      app: ${APP_NAME}${SUFFIX}
+      app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
+      app-group: ${APP_GROUP}
+      role: ${ROLE}
+      env: ${ENV_NAME}
+    annotations:
+      haproxy.router.openshift.io/timeout: ${ROUTE_TIMEOUT}
+  spec:
+    host: ${AGENT_SUBDOMAIN}.${APP_DOMAIN}
+    to:
+      kind: Service
+      name: ${CONTROLLER_NAME}
+      weight: 100
+    port:
+      targetPort: ${{AGENT_HTTP_PORT}}
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: None
+    wildcardPolicy: None
+  status:
+    ingress:
+      - host: ${AGENT_SUBDOMAIN}.${APP_DOMAIN}
+        routerName: default
+        conditions:
+          - type: Admitted
+            status: 'True'
+        wildcardPolicy: None
+        routerCanonicalHostname: ${APP_DOMAIN}
+
+- kind: Route
+  apiVersion: v1
+  metadata:
+    name: ${CONTROLLER_NAME}-admin
+    labels:
+      name: ${CONTROLLER_NAME}-admin
+      app: ${APP_NAME}${SUFFIX}
+      app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
+      app-group: ${APP_GROUP}
+      role: ${ROLE}
+      env: ${ENV_NAME}
+    annotations:
+      haproxy.router.openshift.io/timeout: ${ROUTE_TIMEOUT}
+  spec:
+    host: ${AGENT_SUBDOMAIN}-admin.${APP_DOMAIN}
+    to:
+      kind: Service
+      name: ${CONTROLLER_NAME}
+      weight: 100
+    port:
+      targetPort: ${{CONTROLLER_ADMIN_PORT}}
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: None
+    wildcardPolicy: None
+  status:
+    ingress:
+      - host: ${AGENT_SUBDOMAIN}-admin.${APP_DOMAIN}
+        routerName: default
+        conditions:
+          - type: Admitted
+            status: 'True'
+        wildcardPolicy: None
+        routerCanonicalHostname: ${APP_DOMAIN}
+
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    name: ${CONTROLLER_NAME}${SUFFIX}
+    labels:
+      name: ${CONTROLLER_NAME}
+      app: ${APP_NAME}${SUFFIX}
+      app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
+      app-group: ${APP_GROUP}
+      role: ${ROLE}
+      env: ${ENV_NAME}
+    annotations:
+      description: Defines how to deploy the application server
+      app.openshift.io/connects-to: >-
+        [{"apiVersion":"apps.openshift.io/v1","kind":"DeploymentConfig","name":"${POSTGRESQL_NAME}"},
+        {"apiVersion":"apps.openshift.io/v1","kind":"DeploymentConfig","name":"${ACAPY_NAME}"}]
+  spec:
+    replicas: 1
+    selector:
+      name: ${CONTROLLER_NAME}${SUFFIX}
+    strategy:
+      type: Rolling
+    template:
+      metadata:
+        name: ${CONTROLLER_NAME}${SUFFIX}
+        labels:
+          name: ${CONTROLLER_NAME}
+          app: ${APP_NAME}${SUFFIX}
+          app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
+          app-group: ${APP_GROUP}
+          role: ${ROLE}
+          env: ${ENV_NAME}
+        annotations:
+          description: Defines how to deploy the application server
+          app.openshift.io/connects-to: >-
+            [{"apiVersion":"apps.openshift.io/v1","kind":"DeploymentConfig","name":"${POSTGRESQL_NAME}"},
+            {"apiVersion":"apps.openshift.io/v1","kind":"DeploymentConfig","name":"${ACAPY_NAME}"}]
+      spec:
+        containers:
+        - name: ${CONTROLLER_NAME}${SUFFIX}
+          env:
+          - name: PORT
+            value: ${CONTROLLER_ADMIN_PORT}
+          - name: SITE_URL
+            value: ${AGENT_SUBDOMAIN}-admin.${APP_DOMAIN}
+          - name: AGENT_URL
+            value: ${AGENT_URL}
+          - name: DEBUG
+            value: ${DEBUG}
+          - name: AGENT_ADMIN_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: ${AGENT_SERVICE_NAME}${SUFFIX}-api
+                key: admin-api-key
+          - name: EMAIL_HOST
+            valueFrom:
+              secretKeyRef:
+                name: ${CONTROLLER_NAME}${SUFFIX}-email-host
+                key: email-host
+          - name: DB_NAME
+            value: ${POSTGRESQL_DATABASE_NAME}
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                key: database-user
+                name: ${POSTGRESQL_HOST}
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: database-password
+                name: ${POSTGRESQL_HOST}
+          - name: DB_PORT
+            value: ${POSTGRESQL_PORT}
+          - name: DB_HOST
+            value: ${POSTGRESQL_HOST}
+          - name: EMAIL_PORT
+            value: ${EMAIL_PORT}
+          - name: EMAIL_USE_SSL
+            value: ${EMAIL_USE_SSL}
+          - name: APP_MODULE
+            value: ${APP_MODULE}
+          - name: APP_CONFIG
+            value: ${APP_CONFIG}
+          - name: WEB_CONCURRENCY
+            value: ${WEB_CONCURRENCY}
+          image: " "
+          ports:
+          - containerPort: ${{PORT}}
+            protocol: TCP
+          readinessProbe:
+            timeoutSeconds: 30
+            initialDelaySeconds: 3
+            httpGet:
+              path: "/"
+              port: ${{PORT}}
+          livenessProbe:
+            timeoutSeconds: 30
+            initialDelaySeconds: 300
+            httpGet:
+              path: "/"
+              port: ${{PORT}}
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              cpu: ${CPU_LIMIT}
+              memory: ${MEMORY_LIMIT}
+            requests:
+              cpu: ${CPU_REQUEST}
+              memory: ${MEMORY_REQUEST}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+    triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - ${CONTROLLER_NAME}${SUFFIX}
+        from:
+          kind: ImageStreamTag
+          name: ${CONTROLLER_NAME}:${TAG_NAME}
+          namespace: ${IMAGE_NAMESPACE}
+
+
+
+
+######################################################################
+# Secrets
+######################################################################
+- kind: Secret
+  apiVersion: v1
+  metadata:
+    name: ${POSTGRESQL_NAME}
+    labels:
+      name: ${POSTGRESQL_NAME}
+      app: ${APP_NAME}${SUFFIX}
+      app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
+      app-group: ${APP_GROUP}
+      role: wallet
+      env: ${ENV_NAME}
+    annotations:
+      template.openshift.io/expose-database-user: "{.data['database-user']}"
+      template.openshift.io/expose-database-password: "{.data['database-password']}"
+      template.openshift.io/expose-database-admin-user: "{.data['database-admin-user']}"
+      template.openshift.io/expose-database-admin-password: "{.data['database-admin-password']}"
+      template.openshift.io/expose-database-name: "{.data['database-name']}"
+  stringData:
+    database-user: "dbuser"
+    database-password: "${POSTGRESQL_PASSWORD}"
+    database-admin-user: "postgres"
+    database-admin-password: "${POSTGRESQL_ADMIN_PASSWORD}"
+    database-name: "${POSTGRESQL_DATABASE_NAME}"
+  type: Opaque
+
+- kind: Secret
+  apiVersion: v1
+  metadata:
+    name: ${CONTROLLER_NAME}-email-host
+    labels:
+      name: ${CONTROLLER_NAME}
+      app: ${APP_NAME}${SUFFIX}
+      app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
+      app-group: ${APP_GROUP}
+      role: wallet
+      env: ${ENV_NAME}
+    annotations:
+      template.openshift.io/expose-email-host: "{.data['email-host']}"
+  stringData:
+    email-host: ${SMTP_EMAIL_HOST}
+  type: Opaque
+
+######################################################################
+# Parameters
+##################################################
+####################
+parameters:
+- name: NAMESPACE_NAME
+  displayName: NameSpace name
+  description: name of the project namespace
+  required: true
+  value: a99fd4
+- name: ENV_NAME
+  displayName: Environment TAG name
+  description: The TAG name for this environment, e.g., dev, test, prod.
+  required: true
+  value: 'dev'
+- name: APP_NAME
+  displayName: Application name
+  description: Used to group components together in the OpenShift console.
+  required: true
+  value: 'aries-issuer'
+- name: APP_GROUP
+  displayName: App Group
+  description: Used to group components together.
+  required: true
+  value: 'issuer-kit-agent'
+- name: SUFFIX
+  displayName: Suffix
+  description: A suffix applied to all the objects in this template.
+  required: false
+  value: ''
+- name: ROLE
+  displayName: Role
+  description: The role of this service within the application - used for Network Policies.
+  required: true
+  value: 'agent'
+- name: API_ROLE
+  displayName: Agent Role
+  description:
+    The role of the api service within the application - used for Network
+    Policies
+  required: true
+  value: 'api'
+- name: APP_DOMAIN
+  description: The exposed hostname that will route to the public agent endpoint.
+  required: true
+- name: AGENT_SUBDOMAIN
+  description: The external subdomain to access Aries issuer.
+  required: true
+  value: 'aries-issuer'
+- name: TAILS_SERVER_SUBDOMAIN
+  description: The external subdomain to access tails server.
+  required: true
+  value: 'aries-issuer-tails'
+- name: POSTGRESQL_NAME
+  displayName: PostgreSQL name
+  description: The name assigned to all PostgreSQL objects defined in this template.
+  required: true
+  value: 'controller-bd'
+- name: POSTGRESQL_PASSWORD
+  displayName: PostgreSQL connection password
+  description: Password for the PostgreSQL connection user. Needs to be basee64 encoded.
+  required: true
+  generate: "expression"
+  from: "[a-zA-Z0-9]{16}"
+- name: POSTGRESQL_ADMIN_PASSWORD
+  displayName: PostgreSQL administrator password
+  description: Password for the PostgreSQL administrative account. Needs to be basee64 encoded.
+  required: true
+  generate: "expression"
+  from: "[a-zA-Z0-9]{16}"
+- name: POSTGRESQL_DATABASE_NAME
+  displayName: PostgreSQL database name
+  description: Name of the PostgreSQL database.
+  required: true
+  value: 'postgres'
+- name: POSTGRESQL_HOST
+  displayName: PostgreSql hostname
+  required: true
+  description: Hostname of the deployed PostgreSql database. Only used when WALLET_STORAGE_TYPE = postgres_storage.
+  value: 'postgres'
+- name: POSTGRESQL_PORT
+  displayName: PostgreSql key management service port
+  required: true
+  description: The port number of the deployed PostgreSql database. Only used when WALLET_STORAGE_TYPE = postgres_storage.
+  value: '5432'
+- name: WALLET_STORAGE_TYPE
+  displayName: Wallet storage type
+  description: The wallet storage type. Possible values are 'postgres_storage' or 'sqlite_storage' at the moment.  If not defined, defaults to 'sqlite_storage' for compatibility.
+  required: false
+  value: 'postgres_storage'
+- name: CONTROLLER_ADMIN_PORT
+  displayName: Agent Admin Port
+  description: The port on which the agent will listen for the admin API.
+  required: true
+  value: '3000'
+- name: ACAPY_AUTO_ACCEPT_INVITES
+  displayName: ACAPy auto accept invites
+  description: ACAPY_AUTO_ACCEPT_INVITES
+  required: true
+  value: 'false'
+- name: ADMIN_API_KEY
+  displayName: Admin API key
+  description: The key used to authenticate client requests to the admin api.
+  required: false
+  value: ''
+- name: WALLET_TYPE
+  displayName: Wallet type
+  description: The wallet type. Supported internal storage types are 'basic' (memory), 'indy', and 'askar'.
+  required: true
+  value: 'askar'
+- name: WALLET_STORAGE_CONFIG
+  displayName: Wallet storage configuration
+  required: true
+  description: The wallet storage configuration.
+  value: '{\"url\":\"${POSTGRESQL_NAME}:${POSTGRESQL_PORT}\",\"max_connections\":5,\"wallet_scheme\":\"MultiWalletSingleTableSharedPool\"}'
+- name: WALLET_STORAGE_CREDS
+  displayName: Wallet storage credentials
+  required: true
+  description: The wallet storage credentials.
+  value: '{\"account\":\"${POSTGRESQL_USER}\",\"password\":\"${POSTGRESQL_PASSWORD}\",\"admin_account\":\"${POSTGRESQL_ADMIN_USER}\",\"admin_password\":\"${POSTGRESQL_ADMIN_PASSWORD}\"}'
+- name: CONTROLLER_NAME
+  displayName: ACA-Py name
+  description: The name assigned to all ACA-Py objects defined in this template.
+  required: true
+  value: 'controller'
+- name: CONTROLLER_LABEL
+  displayName: Controller label
+  description: Label for the agent.
+  required: true
+  value: 'Service de Vérification de Courriel du CQEN'
+- name: ACAPY_IMAGE_URL
+  displayName: Agent Image URL
+  description: The URL of the image for the agent
+  required: false
+- name: AGENT_HTTP_PORT
+  displayName: Agent HTTP port
+  description: The HTTP port on which the agent will listen.
+  required: true
+  value: '8000'
+- name: LOG_LEVEL
+  displayName: Log Level
+  description: The logging level of the issuer agent.
+  required: true
+  value: 'DEBUG'
+- name: TAILS_SERVER_NAME
+  displayName: Tails server name
+  description: The name assigned to all Tails server objects defined in this template.
+  required: true
+  value: 'tails-server'
+- name: TAILS_SERVER_PORT
+  displayName: Tails server port
+  description: The port on which the tails server will listen.
+  required: true
+  value: '6543'
+- name: GENESIS_FILE_URL
+  displayName: Genesis file URL
+  description: The URL from which the genesis file can be downloaded.
+  required: true
+- name: STORAGE_CLASS_NAME
+  displayNgp2iption: The storage class of the volume.
+  required: true
+  value: 'gp2'
+- name: TAILS_SERVER_VOLUME_SIZE
+  displayName: Tails server volume size
+  description: The size of the tails server persistent volume, e.g. 512Mi, 1Gi, 2Gi.
+  required: true
+  value: 1Gi
+- name: POSTGRESQL_VOLUME_SIZE
+  displayName: PostgreSql volume size
+  description: The size of the PostgreSql persistent volume, e.g. 512Mi, 1Gi, 2Gi.
+  required: true
+  value: 1Gi
+# ===============================================================================
+- name: ROUTE_TIMEOUT
+  displayName: Route Timeout
+  description: The timeout for the application route.  When this timeout is exceeded the application's route will respond with a 504 Gateway Timeout error.
+  required: true
+  value: 120s
+- name: CPU_REQUEST
+  displayName: Resources CPU Request
+  description: The resources CPU request (in cores) for this build.
+  required: true
+  value: 100m
+- name: CPU_LIMIT
+  displayName: Resources CPU Limit
+  description: The resources CPU limit (in cores) for this build.
+  required: true
+  value: 250m
+- name: MEMORY_REQUEST
+  displayName: Resources Memory Request
+  description: The resources Memory request (in Mi, Gi, etc) for this build.
+  required: true
+  value: 128Mi
+- name: MEMORY_LIMIT
+  displayName: Resources Memory Limit
+  description: The resources Memory limit (in Mi, Gi, etc) for this build.
+  required: true
+  value: 256Mi
+# Paramètres pour le build de l'application
+- name: GIT_REPO_URL
+  displayName: Git Repo URL
+  description: The URL to your GIT repo.
+  required: true
+  value: 'https://github.com/CQEN-QDCE/exp-attestation-emploie-acces.git'
+- name: GIT_REF
+  displayName: Git Reference
+  description: The git reference or branch.
+  required: true
+  value: 'features/agent'
+- name: SOURCE_CONTEXT_DIR
+  displayName: Source Context Directory
+  description: The source context directory.
+  required: false
+  value: 'controller/src'
+- name: SOURCE_IMAGE_KIND
+  displayName: Source Image Kind
+  description: The 'kind' (type) of the  source image; typically ImageStreamTag,
+    or DockerImage.
+  required: true
+  value: 'DockerImage'
+- name: SOURCE_IMAGE_NAME
+  displayName: Source Image Name
+  description: The name of the source image.
+  required: true
+  value: 'registry.access.redhat.com/rhscl/python-36-rhel7'
+- name: SOURCE_IMAGE_TAG
+  displayName: Source Image Tag
+  description: The tag of the source image.
+  required: true
+  value: 'latest'
+- name: PIP_INDEX_URL
+  displayName: Custom PyPi Index URL
+  description: The custom PyPi index URL
+  value: ''
+- name: IMAGE_NAME
+  displayName: Output Image Name
+  description: The built image's name.
+  required: true
+  value: ''
+- name: IMAGE_TAG
+  displayName: Output Image Tag
+  description: The tag given to the built image.
+  required: true
+  value: 'latest'
+- name: SMTP_EMAIL_HOST
+  displayName: Email Host Name
+  required: true
+  value: 'smtp.mcn.gouv.qc.ca'
+- name: EMAIL_PORT
+  displayName: Email Port
+  required: true
+  value: '25'
+- name: EMAIL_USE_SSL
+  displayName: Email Use SSL
+  required: true
+  value: 'false'
+- name: DEBUG
+  displayName: Debug
+  description: Flag to indicate whether the service in running in debug mode.
+  required: true
+  value: 'true'
+- name: AGENT_SERVICE_NAME
+  displayName: Agent Service Name
+  description: The name of the agent service
+  required: true
+  value: 'email-verification-agent'
+- name: DATABASE_SERVICE_NAME
+  displayName: Database Service Name
+  required: true
+  value: 'email-verification-service-db'
+- name: APP_MODULE
+  displayName: Application Module
+  description: Used to run the application with Gunicorn.
+  required: true
+  value: 'email_verification_service.wsgi'
+- name: APP_CONFIG
+  displayName: Gunicorn Config File
+  description: option to be passed to gunicorn -c
+  required: false
+  value: 'python:email_verification_service.settings'
+- name: WEB_CONCURRENCY
+  displayName: Web Concurrency
+  description: Controls/overrides the number of Gunicorn workers.  This MUST be set to 1 when using a SQLite wallet.
+  required: true
+  value: '1'
+- name: ACAPY_NAME
+  displayName: ACA-Py name
+  description: The name assigned to all ACA-Py objects defined in this template.
+  required: true
+  value: ''
+- name: AGENT_URL
+  displayName: Agent URL
+  description: The URL for the agent's admin endpoint.
+  required: true
+  value: ''
