@@ -155,6 +155,9 @@ objects:
       env: ${TAG_NAME}
   stringData:
     email-host: ${SMTP_EMAIL_HOST}
+    database-service-name: ${DATABASE_SERVICE_NAME}
+    database-user: ${DATABASE_SERVICE_NAME}
+    database-password: ${DATABASE_SERVICE_NAME}
   type: Opaque
 
 - kind: DeploymentConfig
@@ -195,10 +198,11 @@ objects:
           - name: DEBUG
             value: ${DEBUG}
           - name: AGENT_ADMIN_API_KEY
-            valueFrom:
-              secretKeyRef:
-                name: ${AGENT_SERVICE_NAME}
-                key: admin-api-key
+            value: ${AGENT_ADMIN_API_KEY}
+          #  valueFrom:
+          ##    secretKeyRef:
+          #      name: ${AGENT_SERVICE_NAME}
+          #      key: admin-api-key
           - name: EMAIL_HOST
             valueFrom:
               secretKeyRef:
@@ -209,13 +213,13 @@ objects:
           - name: DB_USER
             valueFrom:
               secretKeyRef:
-                name: ${POSTGRESQL_NAME}
                 key: database-user
+                name: ${CONTROLLER_NAME}${SUFFIX}-email-host
           - name: DB_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: ${POSTGRESQL_NAME}
                 key: database-password
+                name: ${CONTROLLER_NAME}${SUFFIX}-email-host
           - name: DB_PORT
             value: ${DATABASE_PORT}
           - name: DB_HOST
@@ -295,7 +299,7 @@ parameters:
   required: true
   value: email-verification-service
 - name: SUFFIX
-  displayName: Suffix
+  displayName: Suffixclear
   description: A name suffix used for all objects
   required: false
   value: ''
@@ -367,6 +371,9 @@ parameters:
   displayName: Database Name
   required: true
   value: email-verification-service-db
+- name: DATABASE_SERVICE_NAME
+  displayName: Database Service Name
+  required: true
 - name: DATABASE_PORT
   displayName: Database Port
   required: true
@@ -407,3 +414,7 @@ parameters:
   description: The resources Memory limit (in Mi, Gi, etc) for this build.
   required: true
   value: 1Gi
+- name: AGENT_ADMIN_API_KEY
+  displayName: Agent API key for admin site 
+  description: The key for the agent's admin endpoint.
+  required: true
