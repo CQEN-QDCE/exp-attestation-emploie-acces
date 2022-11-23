@@ -33,10 +33,9 @@ rectangle "Contrôle d'accèss virtuel"{
     }
 
 rectangle "Gestionnaire d'accès" {
-    agent "Vérification du courriel" as Emetteur
+    agent "Émetteur" as Emetteur
     actor "Gestionnaire d'accès" as Gestionnaire
-    agent "Création du profil usager" as CProfile
-    actor Employé as Employe
+    actor Employé as Employee
     agent "Agent mediateur" as AM
     agent "Boite eMail" as Boite
     agent "Agent ACA-Py" as ACAPYga
@@ -67,26 +66,24 @@ Keycloak <--> Protege
 Keycloak <--> Realm
 Keycloak <--> Verifv
 URL --> Keycloak
+Verifv <--> dltCA : https
 
 'LIENS SANS REGROUPEMENT AU DROIT DU DIAGRAMME
 Internet --> 1acapy
-1acapy --> dltCA  : "Journalisation accès physique?"
+1acapy <--> dltCA  : "Journalisation accès physique?"
 
 'LIENS De l'ÉMETTEUR
-Emetteur <--> ACAPYga
-Emetteur -left-> DB
-Gestionnaire -down-> CProfile : "0- Donner accès"
-Employe -down-> Emetteur : "1-Saisir son courriel"
-Emetteur -down-> Boite : "2-Envoyer lien à utilisation unique"
-Employe -down-> Boite : "3 Lire courriel et clic sur lien unique "
-Boite -up-> Emetteur : "4-Affichage du code à barre"
-cellga -left-> Emetteur : "5-Lecture du code à barre"
-cellga <--> AM : "6-Réception attestation d'accès 1/2"
-AM <--> ACAPYga : "7-Réception attestation d'accès 2/2"
-CProfile -right-> DB
-dltCA <--> cellga
-Verifv --> dltCA
-AM <--> dltCA
-ACAPYga <--> dltCA
+Emetteur <--> ACAPYga : https
+Emetteur --> DB : https
+Gestionnaire --> DB : "Entrée manuelle"
+Employee --> Emetteur : "Entrée manuelle"
+Emetteur <--> Boite : SMTP
+Employee -[#black,dotted]> Boite
+cellga --> Emetteur : https
+cellga <--> AM : WebSocket
+AM <--> ACAPYga : https
+dltCA <--> cellga : https
+AM <--> dltCA : https
+ACAPYga <--> dltCA : https
 
 @enduml

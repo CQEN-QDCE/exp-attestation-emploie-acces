@@ -4,12 +4,12 @@ autonumber
 '*************
 'Déclaration de participants
 '*************
-participant "Gestionnaire \nd'accès" as Gestionnaire
+actor "Gestionnaire \nd'accès" as Gestionnaire
 database "DB" as DB #LightBlue
-actor Fureteur as Employe
+actor Employé as Employee
 participant Émetteur as Emetteur
 participant "Boîte eMail" as Boite
-actor "Portefeuille \nNumérique" as wallet    
+participant  "Portefeuille \nNumérique" as wallet    
 participant "Agent mediateur" as AM
 participant "ACA-Py" as ACAPY   
 collections CANdy
@@ -18,13 +18,13 @@ collections CANdy
 '**************
 Gestionnaire -> DB : Création du profil usager
 Gestionnaire -> DB : Donner accès
-Employe -> Emetteur : Saisir son courriel
+Employee -> Emetteur : Saisir courriel
 Emetteur <-> ACAPY : Demander lien d'invitation
 'Emetteur <-> DB : Vérification de l'accès
 Emetteur -> Boite : Envoyer lien à utilisation unique
-Employe -> Boite : Lire courriel et clic sur lien unique
-Boite -> Employe : Affichage du code à barre
-wallet -> Employe : Lecture du code à barre
+Employee -> Boite : Lire courriel et clic sur lien unique
+Boite -> Employee : Affichage du code QR
+wallet -> Employee : Lecture du code QR
 wallet -> AM : Demande attestation d'accès
 AM -> ACAPY : Demande attestation d'accès
 ACAPY -> CANdy : Demande attestation d'accès

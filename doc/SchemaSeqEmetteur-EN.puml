@@ -1,0 +1,33 @@
+@startuml SchemaEmitter
+autonumber
+
+'*************
+'Participants
+'*************
+actor "Access \nManager" as manager
+database "DB" as DB #LightBlue
+actor Employee as Employee
+participant Emitter as Emitter
+participant Email as Email
+participant "E-wallet" as wallet    
+participant "Mediator Agent" as AM
+participant "ACA-Py" as ACAPY   
+collections CANdy
+'**************
+'LINKS DEFINITION
+'**************
+manager -> DB : Creates user profile
+manager -> DB : Allows access
+Employee -> Emitter : Enters email
+Emitter <-> ACAPY : Requests invitation link
+'Emitter <-> DB : Vérification de l'accès
+Emitter -> Email : Sends one-time link
+Employee -> Email : Reads email and click on one-time link
+Email -> Employee : Shows QR Code
+wallet -> Employee : Scan QR code
+wallet -> AM : Demande attestation d'accès
+AM -> ACAPY : Demande attestation d'accès
+ACAPY -> CANdy : Demande attestation d'accès
+CANdy -> wallet : Réception de l'attestation
+
+@enduml
