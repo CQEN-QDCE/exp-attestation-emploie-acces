@@ -68,7 +68,7 @@ def submit(request):
                     "Suivez ce lien pour vous connecter à notre "
                     f"service de vérification: {redirect_url}"
                 ),
-                "Service de Verification de Courriel du Québec  <noreply@mcn.gov.qc.ca>",
+                "ne-pas-repondre@asea.cqen.ca",
                 [email],
                 fail_silently=False,
                 html_message=email_html,
