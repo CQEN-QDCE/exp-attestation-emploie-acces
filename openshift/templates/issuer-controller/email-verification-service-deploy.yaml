@@ -4,104 +4,6 @@ apiVersion: template.openshift.io/v1
 metadata:
   name: ${CONTROLLER_NAME}${SUFFIX}
 objects:
-# - kind: ExternalNetwork
-#   apiVersion: security.devops.gov.bc.ca/v1alpha1
-#   metadata:
-#     name: ${CONTROLLER_NAME}${SUFFIX}
-#     network: ${CONTROLLER_NAME}${SUFFIX}
-#     labels:
-#       name: ${CONTROLLER_NAME}${SUFFIX}
-#       network: ${CONTROLLER_NAME}${SUFFIX}
-#       app: ${APP_NAME}${SUFFIX}
-#       app-group: ${APP_GROUP}
-#       env: ${TAG_NAME}
-#   spec:
-#     description: |
-#       Define the network parameters for accessing smtp server
-#     entries:
-#       - ${SMTP_EMAIL_HOST}
-#     servicePorts:
-#       - tcp/25
-# - kind: NetworkSecurityPolicy
-#   apiVersion: security.devops.gov.bc.ca/v1alpha1
-#   metadata:
-#     name: ${CONTROLLER_NAME}${SUFFIX}
-#     labels:
-#       name: ${CONTROLLER_NAME}${SUFFIX}
-#       env: ${TAG_NAME}
-#       app: ${APP_NAME}${SUFFIX}
-#       app-group: ${APP_GROUP}
-#   spec:
-#     description: Allow service to access the database and agent
-#     source:
-#       - - $namespace=${NAMESPACE_NAME}-${TAG_NAME}
-#         - role=${ROLE}
-#         - app=${APP_NAME}${SUFFIX}
-#         - env=${TAG_NAME}
-#     destination:
-#       - - ext:name=${CONTROLLER_NAME}${SUFFIX}
-#       - - role=db
-#         - app=${APP_NAME}${SUFFIX}
-#         - env=${TAG_NAME}
-#         - $namespace=${NAMESPACE_NAME}-${TAG_NAME}
-#       - - role=agent
-#         - app=${APP_NAME}${SUFFIX}
-#         - env=${TAG_NAME}
-#         - $namespace=${NAMESPACE_NAME}-${TAG_NAME}
-#- kind: NetworkPolicy
-#  apiVersion: networking.k8s.io/v1
-#  metadata:
-#    name: ${CONTROLLER_NAME}-allow-ingress
-#    labels:
-#      name: ${CONTROLLER_NAME}-allow-ingress
-#      app: ${APP_NAME}
-#      app-group: ${APP_GROUP}
-#      role: ${ROLE}
-#      env: ${TAG_NAME}
-#  spec:
-#    description: |
-#      Allow traffic from routes into the ${ROLE} container(s).
-#    ingress:
-#      - from:
-#          - namespaceSelector:
-#              matchLabels:
-#                network.openshift.io/policy-group: ingress
-#    podSelector:
-#      matchLabels:
-#        role: ${ROLE}
-#        app: ${APP_NAME}
-#        env: ${TAG_NAME}
-#    policyTypes:
-#      - Ingress
-#- kind: NetworkPolicy
-#  apiVersion: networking.k8s.io/v1
-#  metadata:
-#    name: ${CONTROLLER_NAME}
-#    labels:
-#      name: ${CONTROLLER_NAME}
-#      app: ${APP_NAME}
-#      env: ${TAG_NAME}
-#  spec:
-#    description: Allow the agent to access the service.
-#    ingress:
-#      - from:
-#        - podSelector:
-#            matchLabels:
-#              role: ${AGENT_ROLE}
-#              app: ${APP_NAME}
-#              env: ${TAG_NAME}
-#          namespaceSelector:
-#            matchLabels:
-#              name: ${NAMESPACE_NAME}
-#              environment: ${TAG_NAME}
-#        ports:
-#          - protocol: TCP
-#            port: ${{PORT}}
-#    podSelector:
-#      matchLabels:
-#        role: ${ROLE}
-#        app: ${APP_NAME}
-#        env: ${TAG_NAME}
 - kind: Service
   apiVersion: v1
   metadata:
@@ -132,11 +34,11 @@ objects:
       role: ${ROLE}
       env: ${TAG_NAME}
   spec:
-    host: ${APP_DOMAIN}
+    host: ${CONTROLLER_NAME}.${APP_DOMAIN}
     port:
-      targetPort: ${CONTROLLER_NAME}${SUFFIX}
+      targetPort: 8080
     tls:
-      insecureEdgeTerminationPolicy: Redirect
+      insecureEdgeTerminationPolicy: None
       termination: edge
     to:
       kind: Service
@@ -199,10 +101,6 @@ objects:
             value: ${DEBUG}
           - name: AGENT_ADMIN_API_KEY
             value: ${AGENT_ADMIN_API_KEY}
-          #  valueFrom:
-          ##    secretKeyRef:
-          #      name: ${AGENT_SERVICE_NAME}
-          #      key: admin-api-key
           - name: EMAIL_HOST
             valueFrom:
               secretKeyRef:
@@ -214,20 +112,24 @@ objects:
             valueFrom:
               secretKeyRef:
                 key: database-user
-                name: ${CONTROLLER_NAME}${SUFFIX}-email-host
+                name: email-verification-service-db-port-e
           - name: DB_PASSWORD
             valueFrom:
               secretKeyRef:
                 key: database-password
-                name: ${CONTROLLER_NAME}${SUFFIX}-email-host
+                name: email-verification-service-db-port-e
           - name: DB_PORT
             value: ${DATABASE_PORT}
           - name: DB_HOST
             value: ${POSTGRESQL_NAME}
           - name: EMAIL_PORT
             value: ${EMAIL_PORT}
-          - name: EMAIL_USE_SSL
-            value: ${EMAIL_USE_SSL}
+          - name: EMAIL_USE_TLS
+            value: ${EMAIL_USE_TLS}
+          - name: EMAIL_HOST_USER
+            value: ${EMAIL_HOST_USER}
+          - name: EMAIL_HOST_PASSWORD
+            value: ${EMAIL_HOST_PASSWORD}  
           - name: APP_MODULE
             value: ${APP_MODULE}
           - name: APP_CONFIG
@@ -250,7 +152,7 @@ objects:
             httpGet:
               path: "/"
               port: ${{PORT}}
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           resources:
             limits:
               cpu: ${CPU_LIMIT}
@@ -356,7 +258,6 @@ parameters:
   displayName: Site URL
   description: The URL for the site
   required: true
-  value: https://email-verification-dev.apps.silver.devops.gov.bc.ca
 - name: AGENT_URL
   displayName: Agent URL
   description: The URL for the agent's admin endpoint.
@@ -390,10 +291,18 @@ parameters:
   displayName: Email Port
   required: true
   value: "25"
-- name: EMAIL_USE_SSL
-  displayName: Email Use SSL
+- name: EMAIL_HOST_USER
+  displayName: Email user name for authentication
   required: true
-  value: "false"
+  value: ""
+- name: EMAIL_HOST_PASSWORD
+  displayName: Email password for user authentification
+  required: true
+  value: ""
+- name: EMAIL_USE_TLS
+  displayName: Email Use TLS
+  required: true
+  value: "True"
 - name: CPU_REQUEST
   displayName: Resources CPU Request
   description: The resources CPU request (in cores) for this build.

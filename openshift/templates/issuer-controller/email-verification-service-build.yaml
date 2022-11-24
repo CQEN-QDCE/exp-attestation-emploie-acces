@@ -4,19 +4,6 @@ metadata:
   name: ${NAME}-build-template
   creationTimestamp: null
 objects:
-#  - kind: NetworkSecurityPolicy
-#    apiVersion: security.devops.gov.bc.ca/v1alpha1
-#    metadata:
-#      name: ${ENV_NAME}-pods-to-external-network
-#      labels:
-#        name: pods-to-external-network
-#        env: ${ENV_NAME}
-#    spec:
-#      description: Allow the builds to access the internet. This only needs to be specified once per environment.
-#      source:
-#        - - $namespace=${NAMESPACE_NAME}-${ENV_NAME}
-#      destination:
-#        - - ext:network=any
   - kind: ImageStream
     apiVersion: v1
     metadata:
@@ -46,14 +33,16 @@ objects:
           from:
             kind: ${SOURCE_IMAGE_KIND}
             name: ${SOURCE_IMAGE_NAME}:${SOURCE_IMAGE_TAG}
-          env:
-            - name: PIP_INDEX_URL
-              value: ${PIP_INDEX_URL}
       output:
         to:
           kind: ImageStreamTag
           name: ${NAME}:${OUTPUT_IMAGE_TAG}
 parameters:
+  - name: NAMESPACE_NAME
+    displayName: NameSpace name
+    description: name of the project namespace
+    required: true
+    value: a99fd4
   - name: NAME
     displayName: Name
     description: The name assigned to all of the resources defined in this template.
@@ -69,11 +58,6 @@ parameters:
     description: Environment name.  For the build environment this will typically be 'tools'
     required: true
     value: tools
-  - name: NAMESPACE_NAME
-    displayName: NameSpace name
-    description: name of the project namespace
-    required: true
-    value: a99fd4
   - name: GIT_REPO_URL
     displayName: Git Repo URL
     description: The URL to your GIT repo.
