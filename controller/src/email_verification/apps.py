@@ -24,11 +24,13 @@ class EmailVerificationConfig(AppConfig):
         except ProgrammingError:
             return
 
+        cache.set("credential_definition_id", "8WDp23WFnJPUDjd77khhAG:3:CL:28844:Registre_Acces_Virtuel_CQEN", None)
+
         if cache.get("credential_definition_id") is None:
             schema_body = {
-                "schema_name": "verified-email",
-                "schema_version": "1.2.3",
-                "attributes": ["email", "time"],
+                "schema_name": "CQEN Droit Acces Virtuel",
+                "schema_version": "0.1",
+                "attributes": ["Email", "Time"]
             }
             schema_response = requests.post(f"{AGENT_URL}/schemas", headers={"x-api-key": API_KEY}, json=schema_body)
 
