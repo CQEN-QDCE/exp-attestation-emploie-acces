@@ -409,50 +409,108 @@ objects:
               - bash
               - -c
               - $(echo aca-py start
-                -it http 0.0.0.0 ${AGENT_PORT}
-                -ot http
+                --inbound-transport http '0.0.0.0' ${HTTP_INTERFACE_PORT}
+                --outbound-transport http
+                --admin 0.0.0.0 ${ADMIN_INTERFACE_PORT}
+                --endpoint https://${AGENT_SUBDOMAIN}.${APP_DOMAIN}
+                --genesis-url "${GENESIS_FILE_URL}"
                 --auto-accept-invites
                 --auto-accept-requests
+                --auto-respond-messages
+                --auto-respond-credential-proposal
+                --auto-respond-credential-offer
+                --auto-respond-credential-request
+                --auto-respond-presentation-proposal
+                --auto-respond-presentation-request
                 --auto-provision
-                --wallet-type 'indy'
-                --admin '0.0.0.0' ${ADMIN_PORT}
-                --admin-api-key ${AGENT_ADMIN_API_KEY}
+                --auto-store-credential
+                --wallet-type '${WALLET_TYPE}'
+                --wallet-name "$(echo ${WALLET_NAME} | tr '[:upper:]' '[:lower:]' | sed "s~-~_~g")"
+                --wallet-key "${WALLET_ENCRYPTION_KEY}"
+                --wallet-storage-type "${WALLET_STORAGE_TYPE}"
+                --wallet-storage-config "$(eval echo \"${WALLET_STORAGE_CONFIGURATION}\")"
+                --wallet-storage-creds "$(eval echo \"${WALLET_STORAGE_CREDENTIALS}\")"
+                $([ ! -z "${WEBHOOK_URL}" ] && echo "--webhook-url ${WEBHOOK_URL}" || echo "")
+                $([ ! -z "${AGENT_DID_SEED}" ] && echo "--seed ${AGENT_DID_SEED}" || echo "")
+                $([ ! -z "${AGENT_ADMIN_API_KEY}" ] && echo "--admin-api-key ${AGENT_ADMIN_API_KEY}" || echo "--admin-insecure-mode")
+                --tails-server-base-url https://${TAILS_SERVER_SUBDOMAIN}.${APP_DOMAIN}
                 --log-level ${AGENT_LOG_LEVEL});
             env:
-              - name: ADMIN_PORT
-                value: ${AGENT_ADMIN_PORT}
-              - name: AGENT_PORT
-                value: ${AGENT_HTTP_PORT}
-              - name: ACAPY_WALLET_NAME
+              - name: ACAPY_LABEL
+                value: ${ACAPY_LABEL}
+              - name: ACAPY_IMAGE_URL
+                value: ${ACAPY_IMAGE_URL}               
+              - name: ACAPY_AUTO_ACCEPT_INVITES
+                value: ${ACAPY_AUTO_ACCEPT_INVITES}
+              - name: GENESIS_FILE_URL
+                value: ${GENESIS_FILE_URL}
+              - name: WALLET_NAME
                 value: ${APP_NAME}
-              - name: ACAPY_WALLET_KEY
+              - name: WALLET_STORAGE_TYPE
+                value: ${WALLET_STORAGE_TYPE}
+              - name: WALLET_STORAGE_CONFIGURATION
+                value: ${WALLET_STORAGE_CONFIG}
+              - name: WALLET_STORAGE_CREDENTIALS
+                value: ${WALLET_STORAGE_CREDS}
+              - name: POSTGRESQL_NAME
+                value: ${POSTGRESQL_NAME}
+              - name: POSTGRESQL_PORT
+                value: ${POSTGRESQL_PORT}
+              - name: POSTGRESQL_USER
+                valueFrom:
+                  secretKeyRef:
+                    name: ${POSTGRESQL_NAME}
+                    key: database-user
+              - name: POSTGRESQL_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: ${POSTGRESQL_NAME}
+                    key: database-password
+              - name: POSTGRESQL_ADMIN_USER
+                valueFrom:
+                  secretKeyRef:
+                    name: ${POSTGRESQL_NAME}
+                    key: database-admin-user
+              - name: POSTGRESQL_ADMIN_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: ${POSTGRESQL_NAME}
+                    key: database-admin-password
+              - name: WALLET_ENCRYPTION_KEY
                 valueFrom:
                   secretKeyRef:
                     name: ${ACAPY_NAME}
                     key: master-key
-              - name: ACAPY_WALLET_SEED
+              - name: AGENT_DID_SEED
                 valueFrom:
                   secretKeyRef:
                     name: ${ACAPY_NAME}
                     key: agent-did-seed
+              - name: AGENT_DID
+                valueFrom:
+                  secretKeyRef:
+                    name: ${ACAPY_NAME}
+                    key: agent-did                    
+              - name: HTTP_INTERFACE_PORT
+                value: ${AGENT_HTTP_PORT}
+              - name: ADMIN_INTERFACE_PORT
+                value: ${AGENT_ADMIN_PORT}
+              - name: WEBHOOK_URL
+                value: null
+                valueFrom:
+                  secretKeyRef:
+                    name: ${ACAPY_NAME}
+                    key: webhook-url
               - name: AGENT_ADMIN_API_KEY
                 valueFrom:
                   secretKeyRef:
                     name: ${ACAPY_NAME}
                     key: admin-api-key
-              - name: ACAPY_GENESIS_URL
-                value: ${GENESIS_FILE_URL}
-              - name: ACAPY_ENDPOINT
-                value: https://${AGENT_SUBDOMAIN}.${APP_DOMAIN}
-              - name: ACAPY_WEBHOOK_URL
-                value: ${WEBHOOK_URL}
               - name: ACAPY_LABEL
                 value: ${ACAPY_LABEL}
-              - name: ACAPY_READ_ONLY_LEDGER
-                value: 'false'
               - name: AGENT_LOG_LEVEL
                 value: ${LOG_LEVEL}
-            image: "bcgovimages/aries-cloudagent:py36-1.16-1_0.7.3"
+            image: "bcgovimages/aries-cloudagent:py36-1.16-1_0.7.5"
             ports:
               - containerPort: ${{AGENT_ADMIN_PORT}}
                 protocol: TCP
