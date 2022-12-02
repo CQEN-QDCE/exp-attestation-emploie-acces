@@ -1,0 +1,125 @@
+{% load static %}
+
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js">
+  <!--<![endif]-->
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="shortcut icon" href="/assets/favicon.ico" />
+    <title>Service de Vérification de courriel du Québec</title>
+    <meta
+      name="description"
+      content="An email verification service used to issue a verifiable credential asserting that you are the owner of an email address."
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" href="{% static 'css/bcgov_theme.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/app.css' %}" />
+  </head>
+  <body>
+    <!--[if lt IE 7]>
+      <p class="browsehappy">
+        You are using an <strong>outdated</strong> browser. Please
+        <a href="#">upgrade your browser</a> to improve your experience.
+      </p>
+    <![endif]-->
+    <header>
+      <nav class="navbar navbar-expand-lg navbar-dark">
+        <!-- Navbar content -->
+        <div class="container">
+          <a class="navbar-brand" href="/">
+            <img
+              class="img-fluid d-none d-md-block"
+              src="/assets/images/qc-logo.svg"
+              width="177"
+              height="44"
+              alt="Gouvernement du Québec Logo"
+            />
+
+            <img
+              class="img-fluid d-md-none"
+              src="/assets/images/qc-logo.svg"
+              width="63"
+              height="44"
+              alt="Gouvernement du Québec Logo"
+            />
+          </a>
+          <div class="navbar-brand">
+            Service de Vérification de Courriel du Québec **DEMO**
+          </div>
+        </div>
+      </nav>
+    </header>
+    <main role="main">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-9 col-sm-8">
+            <h1>Merci!</h1>
+            <p>
+              Nous avons vous envoyé un courriel avec plus d'instructions à <b>{{ email }}</b
+              >.
+            </p>
+            <p>
+              Vous n'avez pas un portefeuille d'identité encore? Suivez ces <a href="https://vonx.io/getwallet">instructions</a> pour en obtenir. 
+            </p>
+          </div>
+        </div>
+      </div>
+    </main>
+    <footer class="footer">
+      <nav class="navbar navbar-expand-lg navbar-dark">
+        <!-- Navbar content -->
+        <div class="container">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="#"
+                target="_blank"
+                >.</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="#"
+                target="_blank"
+                >Privacité</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="#"
+                target="_blank"
+                >Accessibilité</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="#"
+                target="_blank"
+                >Copyright</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="#"
+                target="_blank"
+                >Contactez Nous</a
+              >
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </footer>
+    <script src="{% static 'js/bcgov_theme.min.js' %}" async defer></script>
+  </body>
+</html>

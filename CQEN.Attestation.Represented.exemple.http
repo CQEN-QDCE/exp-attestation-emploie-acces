@@ -1,0 +1,77 @@
+#/*
+#* Copyright (c) 2022 Gouvernement du Québec
+#* Auteur: Philippe Foucault
+#* SPDX-License-Identifier: LiLiQ-R-v.1.1
+#* License-Filename: /LICENSE
+#*/
+##############################################################
+# Requetes http pour l'émeteur d'attestations d'accès virtuel
+##############################################################
+### Définition des variables globales
+@hostname = https://port-e-admin.apps.exp.openshift.cqen.ca
+
+####
+#### Récupère list de connections pour cet agent
+#### 
+GET {{hostname}}/connections HTTP/1.1
+X-API-Key: secret
+Content-Type: application/json
+
+
+####
+#### Récupère les schémas crées par cet agent
+####
+GET {{hostname}}/schemas/created HTTP/1.1
+X-API-Key: secret
+Content-Type: : application/json"
+
+
+####
+#### Créer un schéma de droit d'accès virtuel du CQEN
+####
+POST {{hostname}}/schemas HTTP/1.1
+X-API-Key: secret
+Content-Type: application/json
+
+{
+    "schema_name": "CQEN Droit Accès Virtuel",
+    "schema_version": "0.1",
+    "attributes": [
+        "Email", 
+        "Time"
+    ]
+}
+
+#### 1678
+              
+@schema_id = "G15uJpKsf9JnvYCN54Sd28:2:CQEN Droit Accès Virtuel:0.1"
+@cred_def_id = "23YD3dyHuyFvLpLC3zF58F:3:CL:1678:Registre_Acces_Virtuel_CQEN"
+
+####
+#### Crée la définition d'une attestation (CRED_DEF) du registre de droits d'accès du CQEN
+####
+POST {{hostname}}/credential-definitions HTTP/1.1
+Content-Type: application/json
+X-API-Key: secret
+
+{
+  "support_revocation": true,
+  "tag": "Registre_Acces_Virtuel_CQEN",
+  "schema_id": {{schema_id}}
+}
+
+
+####
+#### Récupère un schéma selon son {schema_id}
+####
+GET {{hostname}}/schemas/{{schema_id}} HTTP/1.1
+X-API-Key: secret
+Content-Type: : application/json"
+
+
+####
+#### Récupère une attestation selon son {cred_def}
+####
+GET {{hostname}}/credential/{{cred_def_id}} HTTP/1.1
+X-API-Key: secret
+Content-Type: : application/json"
