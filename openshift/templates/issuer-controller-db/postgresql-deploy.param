@@ -1,0 +1,27 @@
+#=========================================================
+# OpenShift template parameters for:
+# Component: .
+# Template File: ../openshift/templates/postgresql/postgresql-deploy.yaml
+#=========================================================
+NAMESPACE_NAME=exp-port-e-issuer
+NAME=email-verification-service-db
+APP_NAME=issuer
+APP_GROUP=port-e
+SUFFIX=-port-e
+ROLE=db
+SERVICE_ROLE=service
+BACKUP_ROLE=backup-container
+IMAGE_NAMESPACE=a99fd4-tools
+SOURCE_IMAGE_NAME=postgresql
+TAG_NAME=dev
+POSTGRESQL_DATABASE_NAME=email-verification-service-db
+POSTGRESQL_USER=postgresql-user
+POSTGRESQL_PASSWORD=
+POSTGRESQL_ADMIN_PASSWORD=
+MOUNT_PATH=/var/lib/pgsql/data
+PERSISTENT_VOLUME_SIZE=1Gi
+PERSISTENT_VOLUME_CLASS=gp2
+CPU_REQUEST=10m
+CPU_LIMIT=750m
+MEMORY_REQUEST=10Mi
+MEMORY_LIMIT=1000Mi

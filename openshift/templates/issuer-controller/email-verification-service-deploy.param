@@ -1,0 +1,35 @@
+#=========================================================
+# OpenShift template parameters for:
+# Component: .
+# Template File: ../openshift/templates/email-verification-service/email-verification-service-deploy.yaml
+#=========================================================
+NAMESPACE_NAME=exp-port-e-issuer
+APP_NAME=issuer
+CONTROLLER_NAME=email-verification-service
+APP_GROUP=port-e
+SUFFIX=-port-e
+ROLE=service
+AGENT_ADMIN_API_KEY=
+POSTGRESQL_NAME=email-verification-service-db-port-e
+DATABASE_NAME=email-verification-service-db
+DATABASE_SERVICE_NAME=postgres-db
+DATABASE_PORT=5432
+APP_DOMAIN=apps.exp.openshift.cqen.ca
+IMAGE_NAMESPACE=exp-port-e-agent-torjc01
+TAG_NAME=dev
+APP_MODULE=email_verification_service.wsgi
+APP_CONFIG=python:email_verification_service.settings
+WEB_CONCURRENCY=1
+PORT=8080
+SITE_URL=https://email-verification-service.apps.exp.openshift.cqen.ca
+AGENT_URL=https://port-e-admin.apps.exp.openshift.cqen.ca
+DEBUG=true
+SMTP_EMAIL_HOST=
+EMAIL_HOST_USER=
+EMAIL_HOST_PASSWORD=
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+CPU_REQUEST=10m
+CPU_LIMIT=250m
+MEMORY_REQUEST=10Mi
+MEMORY_LIMIT=1Gi
