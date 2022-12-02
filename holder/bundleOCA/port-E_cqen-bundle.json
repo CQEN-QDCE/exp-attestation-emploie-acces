@@ -1,6 +1,6 @@
 {
   MTYqmTBoLT7KLP5RNfgK3b:2:verified-email:1.2.3 <-- utiliation temporaire du schema_id du BC
-  "8WDp23WFnJPUDjd77khhAG:2:CQEN Droit Acces Virtuel:0.1": {
+  "8WDp23WFnJPUDjd77khhAG:2:CQEN_Droit_Acces_Virtuel:0.5": {
     "capture_base": {
       "type": "spec/capture_base/1.0",
       "classification": "GICS:45102010",
