@@ -6,8 +6,8 @@ apiVersion: template.openshift.io/v1
 metadata:
   name: ${APP_NAME}
   annotations:
-    description: Outils et services qui facilitent l'émission, la vérification et la gestion d'attestations d'identité numérique basé sur Hyperledger Aries-Indy.
-    tags: CQEN, SQIN, ING, Hyperledger, ARIES, Indy, Angular, NestJS, PostgreSql
+    description: keycloak de test pour authentifier à partir d'une attestation vérifiable du courriel.
+    tags: CQEN, Hyperledger, ARIES, Indy, Keycloak, PostgreSql
 objects:
 ######################################################################
 # PostgreSql Database
