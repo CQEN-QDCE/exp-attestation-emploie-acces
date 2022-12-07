@@ -1,0 +1,25 @@
+@startuml SchemaConsommteurVirtuel
+autonumber
+
+'*************
+'Déclaration de participants
+'*************
+actor Employé as Employee #Blue
+participant Keycloak
+participant Realm
+participant "Vérificateur \nACA-Py" as ACAPY   
+collections CANdy
+participant  "Portefeuille \nNumérique" as Wallet    
+
+'**************
+'DÉFINITION DES LIENS
+'**************
+Employee -> Keycloak : Saisir site web
+Keycloak <-> Realm : Demander stratégie d'authentification
+Keycloak -> ACAPY : Demande attestation d'accès
+ACAPY -> CANdy : Demande attestation d'accès
+CANdy -> ACAPY : Présente attestation d'accès
+ACAPY -> Keycloak : Présente attestation d'accès
+Keycloak <-> Wallet : Demande et présente attestation d'accès 
+Keycloak -> Employee : Donner accès
+@enduml
