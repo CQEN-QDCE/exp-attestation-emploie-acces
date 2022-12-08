@@ -1,0 +1,13 @@
+#===============================================================================
+# Params pour le template pgadmin-port-e-deploy.yaml
+# 
+# Remplacer les valeurs de secret des variables suivantes: 
+# 
+# PGADMIN_DEFAULT_EMAIL, PGADMIN_DEFAULT_PASSWORD
+#
+#===============================================================================
+
+NAME=pgadmin
+SUFFIX=-app
+PGADMIN_DEFAULT_EMAIL=
+PGADMIN_DEFAULT_PASSWORD=
