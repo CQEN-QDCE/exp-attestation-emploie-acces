@@ -1,1 +1,1 @@
-oc process -f ./agent/aries-issuer.yaml --param-file=./agent/aries-issuer.candy-dev.params.env | oc apply -f -
+oc process -f ./agent/agent-port-e-deploy.yaml --param-file=./agent/agent-port-e-deploy.candy-dev.params.env | oc apply -f -

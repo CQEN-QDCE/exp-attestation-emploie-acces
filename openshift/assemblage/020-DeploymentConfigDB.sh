@@ -1,1 +1,1 @@
-oc process -f ./postgresql/postgresql-deploy.yaml --param-file=./postgresql/postgresql-deploy.param.env | oc apply -f -
+oc process -f ./postgresql/postgresql-port-e-deploy.yaml --param-file=./postgresql/postgresql-port-e-deploy.param.env | oc apply -f -
