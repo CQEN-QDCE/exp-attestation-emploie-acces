@@ -1,0 +1,28 @@
+@startuml SchemaConsommteurPhysique
+autonumber
+
+'*************
+'Déclaration de participants
+'*************
+actor Employé as Employee #Blue
+participant  "Portefeuille \nNumérique" as Wallet
+participant "RFID \nReader" as Reader
+participant "ESP8266 \nMicroController" as ESP8266
+participant "Vérificateur \nACA-Py" as ACAPY   
+collections CANdy
+database Journal
+
+'**************
+'DÉFINITION DES LIENS
+'**************
+Employee -> Wallet : Ouvrir Port-E
+Wallet <-> Reader : Demande token et présente token
+Reader -> ESP8266 : Demande attestation d'accès
+ESP8266 -> ACAPY : Demande attestation d'accès
+ACAPY -> CANdy : Demande attestation d'accès
+CANdy -> ACAPY : Présente attestation d'accès
+ACAPY -> ESP8266 : Présente attestation d'accès
+ESP8266 -> Reader : Présente attestation d'accès 
+Reader -> Employee : Donner accès
+Reader -> Journal : Log
+@enduml
