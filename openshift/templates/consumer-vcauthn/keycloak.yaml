@@ -10,12 +10,19 @@ metadata:
     tags: CQEN, Hyperledger, ARIES, Indy, Keycloak, PostgreSql
 objects:
 ######################################################################
-# PostgreSql Database
+# Database du keycloak (PostgreSQL)
 ######################################################################
 - kind: PersistentVolumeClaim
   apiVersion: v1
   metadata:
-    name: ${POSTGRESQL_NAME}
+    name: ${POSTGRESQL_NAME}-files
+    labels:
+      name: ${POSTGRESQL_NAME}-files
+      app: ${APP_NAME}${SUFFIX}
+      app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
+      app-group: ${APP_GROUP}
+      role: database
+      env: ${ENV_NAME}
   spec:
     storageClassName: ${STORAGE_CLASS_NAME}
     accessModes:
@@ -23,23 +30,32 @@ objects:
     resources:
       requests:
         storage: ${POSTGRESQL_VOLUME_SIZE}
-- kind: Secret
+
+- kind: Service
   apiVersion: v1
   metadata:
     name: ${POSTGRESQL_NAME}
-    annotations:
-      template.openshift.io/expose-database-user: "{.data['database-user']}"
-      template.openshift.io/expose-database-password: "{.data['database-password']}"
-      template.openshift.io/expose-database-admin-user: "{.data['database-admin-user']}"
-      template.openshift.io/expose-database-admin-password: "{.data['database-admin-password']}"
-      template.openshift.io/expose-database-name: "{.data['database-name']}"
-      template.openshift.io/expose-admin-api-key: "{.data['admin-api-key']}"
-  stringData:
-    database-user: "${POSTGRESQL_USERNAME}"
-    database-password: "${POSTGRESQL_PASSWORD}"
-    database-admin-user: "${POSTGRESQL_ADMIN_USERNAME}"
-    database-admin-password: "${POSTGRESQL_ADMIN_PASSWORD}"
-    database-name: "${POSTGRESQL_DATABASE_NAME}"
+    labels:
+      name: ${POSTGRESQL_NAME}
+      app: ${APP_NAME}${SUFFIX}
+      app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
+      app-group: ${APP_GROUP}
+      role: database
+      env: ${ENV_NAME}
+  spec:
+    ports:
+    - name: ${POSTGRESQL_NAME}
+      protocol: TCP
+      port: ${{POSTGRESQL_PORT}}
+      targetPort: ${{POSTGRESQL_PORT}}
+      nodePort: 0
+    selector:
+      name: ${POSTGRESQL_NAME}
+    type: ClusterIP
+    sessionAffinity: None
+  status:
+    loadBalancer: {}
+
 - kind: DeploymentConfig
   apiVersion: v1
   metadata:
@@ -47,8 +63,12 @@ objects:
     annotations:
       template.alpha.openshift.io/wait-for-ready: 'true'
     labels:
-      app: ${POSTGRESQL_NAME}
-      app.kubernetes.io/part-of: SSI-Studio
+      name: ${POSTGRESQL_NAME}
+      app: ${APP_NAME}${SUFFIX}
+      app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
+      app-group: ${APP_GROUP}
+      role: database
+      env: ${ENV_NAME}
   spec:
     strategy:
       type: Recreate
@@ -74,10 +94,36 @@ objects:
       spec:
         containers:
         - name: ${POSTGRESQL_NAME}
-          image: " "
+          image:
           ports:
           - containerPort: ${{POSTGRESQL_PORT}}
             protocol: TCP
+          readinessProbe:
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+            exec:
+# TODO, chercher comment utiliser les variables de nos secret au lieu de coder en dur pour la commande du readinessProbe
+#              command:
+#                - /bin/sh
+#                - -i
+#                - -c
+#                - psql -h 127.0.0.1 -U $POSTGRESQL_USER -d $POSTGRESQL_DATABASE_NAME
+#                - psql -h 0.0.0.0 -U $POSTGRESQL_USER -d $POSTGRESQL_DATABASE_NAME
+#                - psql -w -U $POSTGRESQL_USER -d $POSTGRESQL_DATABASE_NAME
+#                  -c 'SELECT 1'
+#              command: ["psql", "-w", "-U", ${{POSTGRESQL_USER}}, "-d", ${{POSTGRESQL_DATABASE_NAME}}, "-c", "SELECT 1"]
+              command: ["psql", "-w", "-U", "dbuser", "-d", "postgres", "-c", "SELECT 1"]
+          livenessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 120
+            timeoutSeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
           env:
           - name: POSTGRESQL_USER
             valueFrom:
@@ -99,11 +145,8 @@ objects:
               secretKeyRef:
                 name: ${POSTGRESQL_NAME}
                 key: database-admin-password                
-          resources:
-            limits:
-              memory: 512Mi
           volumeMounts:
-          - name: ${POSTGRESQL_NAME}-data
+          - name: ${POSTGRESQL_NAME}-files
             mountPath: "/var/lib/pgsql/data"
           terminationMessagePath: "/dev/termination-log"
           imagePullPolicy: IfNotPresent
@@ -112,52 +155,74 @@ objects:
             capabilities: {}
             privileged: false
         volumes:
-        - name: ${POSTGRESQL_NAME}-data
+        - name: ${POSTGRESQL_NAME}-files
           persistentVolumeClaim:
-            claimName: ${POSTGRESQL_NAME}
+            claimName: ${POSTGRESQL_NAME}-files
         restartPolicy: Always
         dnsPolicy: ClusterFirst
   status: {}
-- kind: Service
+- kind: Secret
   apiVersion: v1
   metadata:
     name: ${POSTGRESQL_NAME}
-  spec:
-    ports:
-    - name: ${POSTGRESQL_NAME}
-      protocol: TCP
-      port: ${{POSTGRESQL_PORT}}
-      targetPort: ${{POSTGRESQL_PORT}}
-      nodePort: 0
-    selector:
+    labels:
       name: ${POSTGRESQL_NAME}
-    type: ClusterIP
-    sessionAffinity: None
-  status:
-    loadBalancer: {}
+      app: ${APP_NAME}${SUFFIX}
+      app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
+      app-group: ${APP_GROUP}
+      role: database
+      env: ${ENV_NAME}
+    annotations:
+      template.openshift.io/expose-database-user: "{.data['database-user']}"
+      template.openshift.io/expose-database-password: "{.data['database-password']}"
+      template.openshift.io/expose-database-admin-user: "{.data['database-admin-user']}"
+      template.openshift.io/expose-database-admin-password: "{.data['database-admin-password']}"
+      template.openshift.io/expose-database-name: "{.data['database-name']}"
+  stringData:
+    database-user: "dbuser"
+    database-password: "${POSTGRESQL_PASSWORD}"
+    database-admin-user: "postgres"
+    database-admin-password: "${POSTGRESQL_ADMIN_PASSWORD}"
+    database-name: "${POSTGRESQL_DATABASE_NAME}"
+  type: Opaque
 
-######################################################################
-# Keycloak
-######################################################################
+# ######################################################################
+# # Keycloak
+# ######################################################################
 - kind: Secret
   apiVersion: v1
   metadata:
     name: ${KEYCLOAK_NAME}
+    labels:
+      name: ${KEYCLOAK_NAME}
+      app: ${APP_NAME}${SUFFIX}
+      app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
+      app-group: ${APP_GROUP}
+      role: database
+      env: ${ENV_NAME}
     annotations:
       template.openshift.io/expose-keycloak-admin-user: "{.data['keycloak-admin-user']}"
       template.openshift.io/expose-keycloak-admin-password: "{.data['keycloak-admin-password']}"
   stringData:
     keycloak-admin-user: "${KEYCLOAK_ADMIN_USER}"
     keycloak-admin-password: "${KEYCLOAK_ADMIN_PASSWORD}"
+
 - kind: DeploymentConfig
   apiVersion: v1
   metadata:
     name: ${KEYCLOAK_NAME}
-    annotations:
-      template.alpha.openshift.io/wait-for-ready: 'true'
     labels:
-      app: ${KEYCLOAK_NAME}
-      app.kubernetes.io/part-of: SSI-Studio
+      name: ${KEYCLOAK_NAME}
+      app: ${APP_NAME}${SUFFIX}
+      app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
+      app-group: ${APP_GROUP}
+      role: database
+      env: ${ENV_NAME}
+    annotations:
+      description: Defines how to deploy the application server
+      template.alpha.openshift.io/wait-for-ready: 'true'
+      app.openshift.io/connects-to: >-
+        [{"apiVersion":"apps.openshift.io/v1","kind":"DeploymentConfig","name":"${POSTGRESQL_NAME}"}]
   spec:
     strategy:
       type: Recreate
@@ -168,6 +233,16 @@ objects:
       metadata:
         labels:
           name: ${KEYCLOAK_NAME}
+          app: ${APP_NAME}${SUFFIX}
+          app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
+          app-group: ${APP_GROUP}
+          role: database
+          env: ${ENV_NAME}
+        annotations:
+          description: Defines how to deploy the application server
+          template.alpha.openshift.io/wait-for-ready: 'true'
+          app.openshift.io/connects-to: >-
+            [{"apiVersion":"apps.openshift.io/v1","kind":"DeploymentConfig","name":"${POSTGRESQL_NAME}"}]
       spec:
         containers:
         - args:
@@ -181,7 +256,10 @@ objects:
           - name: DB_ADDR
             value: ${POSTGRESQL_NAME}
           - name: DB_DATABASE
-            value: ${KEYCLOAK_DATABASE_NAME}
+            valueFrom:
+              secretKeyRef:
+                name: ${POSTGRESQL_NAME}
+                key: database-name
           - name: DB_PASSWORD
             valueFrom:
               secretKeyRef:
@@ -220,13 +298,26 @@ objects:
           securityContext:
             capabilities: {}
             privileged: false
+        initContainers:
+        - name: init-db
+          image: busybox
+          command: ['sh', '-c']
+          args: ["until nc -z ${POSTGRESQL_NAME}:\"${POSTGRESQL_PORT}\"; do echo waiting for db; sleep 2; done;"]
         restartPolicy: Always
         dnsPolicy: ClusterFirst
   status: {}
+
 - kind: Service
   apiVersion: v1
   metadata:
     name: ${KEYCLOAK_NAME}
+    labels:
+      name: ${KEYCLOAK_NAME}
+      app: ${APP_NAME}${SUFFIX}
+      app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
+      app-group: ${APP_GROUP}
+      role: database
+      env: ${ENV_NAME}
   spec:
     ports:
     - name: "8080"
@@ -241,10 +332,18 @@ objects:
     sessionAffinity: None
   status:
     loadBalancer: {}
+
 - kind: Route
   apiVersion: v1
   metadata:
-    name: ${APP_NAME}-keycloak
+    name: ${KEYCLOAK_NAME}
+    labels:
+      name: ${KEYCLOAK_NAME}
+      app: ${APP_NAME}${SUFFIX}
+      app.kubernetes.io/part-of: ${APP_NAME}${SUFFIX}
+      app-group: ${APP_GROUP}
+      role: database
+      env: ${ENV_NAME}
   spec:
     host: ${KEYCLOAK_SUBDOMAIN}.${APP_DOMAIN}
     to:
@@ -266,27 +365,43 @@ objects:
             status: "True"
         wildcardPolicy: None
         routerCanonicalHostname: ${APP_DOMAIN}
+
 ######################################################################
 # Parameters
 ######################################################################
 parameters:
+- name: ENV_NAME
+  displayName: Environment TAG name
+  description: The TAG name for this environment, e.g., dev, test, prod.
+  required: true
+  value: 'dev'
 - name: APP_NAME
   displayName: Application name
   description: Used to group components together in the OpenShift console.
   required: true
-  value: "ssi-studio"
+  value: 'keycloak'
+- name: APP_GROUP
+  displayName: App Group
+  description: Used to group components together.
+  required: true
+  value: 'keycloak-kit'
+- name: SUFFIX
+  displayName: Suffix
+  description: A suffix applied to all the objects in this template.
+  required: false
+  value: ''
 - name: APP_DOMAIN
   description: The external hostname to access the application.
   required: true
 - name: KEYCLOAK_SUBDOMAIN
   description: The external subdomain to access the application.
   required: true
-  value: "ssi-studio-keycloak"
+  value: 'port-e-keycloak'
 - name: POSTGRESQL_USERNAME
   displayName: PostgreSQL connection username
   description: Username for the PostgreSQL connection user.
   required: true
-  value: "dbuser"
+  value: 'dbuser'
 - name: POSTGRESQL_PASSWORD
   displayName: PostgreSQL connection password
   description: Password for the PostgreSQL connection user.
@@ -297,7 +412,7 @@ parameters:
   fdisplayName: PostgreSQL administrator username
   description: Username for the PostgreSQL administrative account.
   required: true
-  value: "postgres"  
+  value: 'postgres'  
 - name: POSTGRESQL_ADMIN_PASSWORD
   fdisplayName: PostgreSQL administrator password
   description: Password for the PostgreSQL administrative account.
@@ -308,36 +423,36 @@ parameters:
   displayName: PostgreSQL database name
   description: Name of the PostgreSQL database.
   required: true
-  value: "ssi_lab"
+  value: 'ssi_lab'
 - name: POSTGRESQL_PORT
   displayName: PostgreSQL database port
   description: Port on which PostgreSQL listens.
   required: true
-  value: "5432"
+  value: '5432'
 - name: POSTGRESQL_NAME
   displayName: PostgreSQL name
   description: The name assigned to all PostgreSQL objects defined in this template.
   required: true
-  value: "postgres-database"
+  value: "database-keycloak"
 - name: STORAGE_CLASS_NAME
   displayNgp2iption: The storage class of the volume.
   required: true
-  value: gp2
+  value: 'gp2'
 - name: POSTGRESQL_VOLUME_SIZE
   displayName: PostgreSql volume size
   description: The size of the PostgreSql persistent volume, e.g. 512Mi, 1Gi, 2Gi.
   required: true
-  value: 1Gi
+  value: '1Gi'
 - name: KEYCLOAK_NAME
   displayName: Keycloak name
   description: The name assigned to all Keycloak objects defined in this template.
   required: true
-  value: "keycloak"
+  value: 'keycloak'
 - name: KEYCLOAK_ADMIN_USER
   displayName: Keycloak administrator username
   description: Username for the Keycloak administrative account.
   required: true
-  value: "admin"
+  value: 'admin'
 - name: KEYCLOAK_ADMIN_PASSWORD
   displayName: Keycloak administrator password
   description: Password for the Keycloak administrative account.
@@ -348,14 +463,9 @@ parameters:
   displayName: Keycloak realm
   description: Keycloak realm.
   required: true
-  value: "SSI-Studio"
+  value: 'SSI-Studio'
 - name: KEYCLOAK_CLIENT_ID
   displayName: Keycloak client id
   description: Keycloak client identifier.
   required: true
-  value: "angular-app"
-- name: KEYCLOAK_DATABASE_NAME
-  displayName: Keycloak database name
-  description: Name of the Keycloak database.
-  required: true
-  value: "keycloak"
+  value: 'angular-app'
