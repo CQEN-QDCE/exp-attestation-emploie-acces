@@ -1,0 +1,126 @@
+kind: Template
+apiVersion: template.openshift.io/v1
+metadata:
+  annotations:
+    description: Deployment template for a postgresql server with persistent storage.
+    tags: ${NAME}${SUFFIX}
+  name: ${NAME}${SUFFIX}-persistent-template
+objects:
+  - kind: DeploymentConfig
+    apiVersion: apps.openshift.io/v1
+    metadata:
+      annotations:
+        app.openshift.io/route-disabled: 'false'
+        openshift.io/generated-by: OpenShiftWebConsole
+      resourceVersion: '186891031'
+      name: pgadmin
+      namespace: exp-port-e
+      labels:
+        app: pgadmin
+        app.kubernetes.io/component: pgadmin
+        app.kubernetes.io/instance: pgadmin
+        app.kubernetes.io/name: pgadmin
+        app.openshift.io/runtime-namespace: exp-port-e
+    spec:
+      strategy:
+        type: Rolling
+        rollingParams:
+          updatePeriodSeconds: 1
+          intervalSeconds: 1
+          timeoutSeconds: 600
+          maxUnavailable: 25%
+          maxSurge: 25%
+        resources: {}
+        activeDeadlineSeconds: 21600
+        image: dpage/pgadmin4:6.15
+        imagePullPolicy: "IfNotPresent"
+      triggers:
+        - type: ImageChange
+          imageChangeParams:
+            automatic: true
+            containerNames:
+              - pgadmin
+            from:
+              kind: ImageStreamTag
+              name: dpage/pgadmin:6.15
+        - type: ConfigChange
+      replicas: 1
+      revisionHistoryLimit: 10
+      test: false
+      selector:
+        app: pgadmin
+        deploymentconfig: pgadmin
+      template:
+        metadata:
+          labels:
+            app: pgadmin
+            deploymentconfig: pgadmin
+          annotations:
+            openshift.io/generated-by: OpenShiftWebConsole
+        spec:
+          volumes:
+            - name: pgadmin-1
+              emptyDir: {}
+          containers:
+            - resources: {}
+              terminationMessagePath: /dev/termination-log
+              name: pgadmin
+              env:
+                - name: PGADMIN_DEFAULT_EMAIL
+                  valueFrom:
+                        secretKeyRef:
+                          name: ${NAME}${SUFFIX}
+                          key: default-email
+                - name: PGADMIN_DEFAULT_PASSWORD
+                  valueFrom:
+                        secretKeyRef:
+                          name: ${NAME}${SUFFIX}
+                          key: admin-password
+              ports:
+                - containerPort: 443
+                  protocol: TCP
+                - containerPort: 80
+                  protocol: TCP
+              imagePullPolicy: IfNotPresent
+              volumeMounts:
+                - name: pgadmin-1
+                  mountPath: /var/lib/pgadmin
+              terminationMessagePolicy: File
+          restartPolicy: Always
+          terminationGracePeriodSeconds: 30
+          dnsPolicy: ClusterFirst
+          securityContext: {}
+          schedulerName: default-scheduler
+  - kind: Secret
+    apiVersion: v1
+    metadata:
+      name: ${NAME}${SUFFIX}
+    stringData:
+      default-email: ${PGADMIN_DEFAULT_EMAIL}
+      admin-password: ${PGADMIN_DEFAULT_PASSWORD}
+    type: Opaque
+######################################################################
+# Parameters
+######################################################################
+parameters:
+- name: NAME
+  displayName: Application name 
+  description: The TAG name for this application. 
+  required: true
+  value: 'pgadmin'
+- name: SUFFIX
+  displayName: Suffix
+  description: A suffix applied to all the objects in this template.
+  required: false
+  value: ''
+- name: PGADMIN_DEFAULT_EMAIL
+  displayName: Default email
+  description: Used to register a user into pradmin console administration.
+  required: true
+  value: ''
+- name: PGADMIN_DEFAULT_PASSWORD
+  displayName: Default password 
+  description: Password for pgadmin's default user.
+  required: true
+  value: ''
+

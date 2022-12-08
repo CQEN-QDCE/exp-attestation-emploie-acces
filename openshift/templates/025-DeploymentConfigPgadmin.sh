@@ -1,0 +1,1 @@
+oc process -f ./postgresql/pgadmin-port-e-deploy.yaml --param-file=./postgresql/pgadmin-port-e-deploy.param.env | oc apply -f -
