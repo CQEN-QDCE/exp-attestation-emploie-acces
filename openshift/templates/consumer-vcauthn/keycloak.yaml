@@ -1,5 +1,5 @@
 ######################################################################
-# oc process -f ./ssi-studio.yaml --param-file=./ssi-studio.dev.params | oc apply -f -
+# oc process -f ./keycloak.yaml --param-file=./keycloak.dev.params | oc apply -f -
 ######################################################################
 kind: Template
 apiVersion: template.openshift.io/v1
