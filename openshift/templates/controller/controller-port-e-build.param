@@ -1,0 +1,18 @@
+#===============================================================================
+# 
+# Params pour le template controller-port-e-build.yaml
+#
+#===============================================================================
+
+NAMESPACE_NAME=exp-port-e
+NAME=controller-port-e
+APP_NAME=controller-port-e
+GRP_APPLICATION=Gestion-des-acces 
+ENV_NAME=tools
+GIT_REPO_URL=https://github.com/CQEN-QDCE/indy-email-verification.git
+GIT_REF=features/nouveauSchema
+SOURCE_CONTEXT_DIR=src
+SOURCE_IMAGE_KIND=DockerImage
+SOURCE_IMAGE_NAME=registry.access.redhat.com/rhscl/python-36-rhel7
+SOURCE_IMAGE_TAG=latest
+OUTPUT_IMAGE_TAG=dev

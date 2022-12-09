@@ -1,0 +1,41 @@
+#===============================================================================
+# Params pour le template agent-port-e-deploy.candy-dev.yaml
+# 
+# Remplacer les valeurs de secret des variables suivantes: 
+# 
+# POSTGRESQL_PASSWORD, POSTGRESQL_ADMIN_PASSWORD, PGADMIN_DEFAULT_EMAIL, PGADMIN_DEFAULT_PASSWORD 
+#
+#===============================================================================
+
+NAMESPACE_NAME=db-controller
+NAME=db-controller
+APP_NAME=email-verification-service
+GRP_APPLICATION=Gestion-des-acces
+APP_GROUP=port-e
+ENV_NAME=dev
+SUFFIX=-port-e
+ROLE=db
+SERVICE_ROLE=service
+BACKUP_ROLE=backup-container
+IMAGE_NAMESPACE=a99fd4-tools
+SOURCE_IMAGE_NAME=postgresql
+TAG_NAME=dev
+
+# Database 
+POSTGRESQL_DATABASE_NAME=email-verification-service-db
+POSTGRESQL_USER=postgresql-user
+POSTGRESQL_PASSWORD=
+POSTGRESQL_ADMIN_PASSWORD=
+
+# pgAdmin - interface pour accès à la BD
+PGADMIN_DEFAULT_EMAIL=
+PGADMIN_DEFAULT_PASSWORD=
+
+
+MOUNT_PATH=/var/lib/pgsql/data
+PERSISTENT_VOLUME_SIZE=2Gi
+PERSISTENT_VOLUME_CLASS=gp2
+CPU_REQUEST=10m
+CPU_LIMIT=750m
+MEMORY_REQUEST=10Mi
+MEMORY_LIMIT=1000Mi

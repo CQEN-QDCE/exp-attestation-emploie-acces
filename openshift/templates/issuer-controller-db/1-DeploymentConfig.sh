@@ -1,1 +1,0 @@
-oc process -f postgresql-deploy.yaml --param-file=postgresql-deploy.param | oc apply -f -
