@@ -1,0 +1,16 @@
+APP_NAME=vc-authn-oidc
+POSTGRESQL_NAME=database-agent
+SUFFIX=-port-e
+APP_GROUP=vc-authn-oidc
+ENV_NAME=dev
+POSTGRESQL_PASSWORD=[a-zA-Z0-9_~!@#$%^&*()-=<>,.?;:|]{16}
+POSTGRESQL_ADMIN_PASSWORD=[a-zA-Z0-9_~!@#$%^&*()-=<>,.?;:|]{16}
+ACAPY_NAME=agent
+AGENT_SUBDOMAIN=vc-authn-oidc
+APP_DOMAIN=apps.exp.openshift.cqen.ca
+WALLET_ENCRYPTION_KEY=[a-zA-Z0-9_~!@#$%^&*()-=<>,.?;:|]{16}
+AGENT_DID=[a-zA-Z0-9_~!@#$%^&*()-=<>,.?;:|]{16}
+AGENT_DID_SEED=[a-zA-Z0-9_~!@#$%^&*()-=<>,.?;:|]{16}
+GENESIS_FILE_URL=https://raw.githubusercontent.com/ICCS-ISAC/dtrust-reconu/main/CANdy/dev/pool_transactions_genesis
+ADMIN_API_KEY=[a-zA-Z0-9_~!@#$%^&*()-=<>,.?;:|]{16}
+ROUTE_TIMEOUT=240s
