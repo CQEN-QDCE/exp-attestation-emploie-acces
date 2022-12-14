@@ -25,9 +25,13 @@ Emetteur -> Boite : Envoyer lien à utilisation unique
 Employee -> Boite : Lire courriel et clic sur lien unique
 Boite -> Employee : Affichage du code QR
 wallet -> Employee : Lecture du code QR
-wallet -> AM : Demande attestation d'accès
-AM -> ACAPY : Demande attestation d'accès
-ACAPY -> CANdy : Demande attestation d'accès
-CANdy -> wallet : Réception de l'attestation
+AM <--> ACAPY : Établissement de connexion
+Emetteur <--> DB : Lecture des privilèges
+Emetteur  -> ACAPY : Offre attestation d'accès
+AM <- ACAPY : Offre attestation d'accès
+AM -> wallet : Offre attestation d'accès
+CANdy <- wallet : Validation de l'authenticité
+wallet -> Employee : Acceptation de l'attestation
+ACAPY -> wallet : Réception de l'attestation
 
 @enduml

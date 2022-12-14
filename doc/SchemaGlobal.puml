@@ -15,7 +15,7 @@
 '**************
 
 rectangle "Controle d'accèss physique" {
-    agent "RFID Reader" as reader
+    agent "NFC Reader" as reader
     agent "Micro Controller" as mcontrol
     agent ESP8266
     cloud Internet
