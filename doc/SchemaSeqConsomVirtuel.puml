@@ -1,3 +1,7 @@
+'*************
+'VERSION FRANÇAISE
+'*************
+
 @startuml SchemaConsommteurVirtuel
 autonumber
 
@@ -22,4 +26,156 @@ ACAPY -> Wallet : Demande preuve d'attestation d'accès
 Wallet -> CANdy : Présente preuve d'attestation d'accès
 CANdy -> Keycloak : Présente preuve d'attestation d'accès
 Keycloak -> Employee : Donner accès
+
+actor Employé as User #Blue
+participant Fureteur as UserAgent
+participant "Keycloak \n Service d'authentification (RP)" as RP
+participant "vc-authn-oidc \nFournisseur d'identités (OP)" as OP
+participant "Portefeuille \nNumérique" as IdentityWallet
+collections CANdy
+
+User -> UserAgent: Saisir site web
+UserAgent -> RP: Fetch RP website
+RP --> UserAgent: Return website
+User -> UserAgent: Click "vc-authn challenge" button (e.g verify your email)
+
+group Demander stratégie d'authentification
+    alt UserAgent Generated Challenge
+        UserAgent -> UserAgent: Generate OIDC VC-Authn request  
+        UserAgent -> OP: Redirect to OIDC VC-Authn request
+    end
+
+    alt RP Generated Challenge
+        UserAgent -> RP: Create OIDC VC-Authn request
+        RP --> UserAgent: Redirect to OIDC VC-Authn request  
+        UserAgent -> OP: Follow OIDC VC-Authn request  
+    end
+end
+
+OP -> OP: Generate VC Presentation Request
+OP -> UserAgent: Return VC Presentation Request
+
+group IdentityWallet Communication Method
+    alt QR Code Scanned By IdentityWallet
+        loop UserAgent await IdentityWallet response
+            UserAgent -> OP: Request challenge status
+            OP --> UserAgent: "authentication_pending" response
+        end
+        note left: The UserAgent polls the OP until the IdentityWallet responds to the request
+        UserAgent -> IdentityWallet: Request Scanned
+        IdentityWallet -> IdentityWallet: Request validated
+        IdentityWallet -> User  : Present verify data request
+        User -> IdentityWallet : Clicks accept request
+        IdentityWallet -> IdentityWallet : Generate VC presentation
+        IdentityWallet -> OP : Submit VC presentation
+        UserAgent -> OP: Request challenge status
+    end
+
+    alt Deeplink invoked by IdentityWallet
+        UserAgent -> IdentityWallet: Deeplink invoked
+        IdentityWallet -> IdentityWallet: Request validated
+        IdentityWallet -> User  : Present verify data request
+        User -> IdentityWallet : Clicks accept request
+        IdentityWallet -> IdentityWallet : Generate VC presentation
+        IdentityWallet -> OP : Submit VC presentation
+        IdentityWallet -> UserAgent: Redirect to OP URI
+        UserAgent -> OP: Follow redirect
+    end
+end
+
+group OAuth Flow
+    alt Authorization Code Flow
+        OP -> UserAgent: Redirect request to RP redirect URI with authorization code
+        UserAgent -> RP: Follow redirect with authorization code
+        RP -> OP: Request token with authorization code
+        OP --> RP: Token response
+    end
+
+    alt Implicit Flow
+        OP -> UserAgent: Redirect request to RP redirect URI with token
+        UserAgent -> RP: Follow redirect with token
+    end
+end
+
+RP --> UserAgent: Success web page
+UserAgent --> User: ACK
+
+@enduml
+
+'*************
+'VERSION ANGLAISE
+'*************
+@startuml "vc-authn-oidc-flow"
+actor Employé as User #Blue
+participant Browser as UserAgent
+participant "Keycloak \n Relying Party (RP)" as RP
+participant "vc-authn-oidc \nIdentity Provider (OP)" as OP
+participant "Identity \nWallet" as IdentityWallet
+
+User -> UserAgent: Naviagates to website
+UserAgent -> RP: Fetch RP website
+RP --> UserAgent: Return website
+User -> UserAgent: Click "vc-authn challenge" button (e.g verify your email)
+
+group Challenge Method
+    alt UserAgent Generated Challenge
+        UserAgent -> UserAgent: Generate OIDC VC-Authn request  
+        UserAgent -> OP: Redirect to OIDC VC-Authn request
+    end
+
+    alt RP Generated Challenge
+        UserAgent -> RP: Create OIDC VC-Authn request
+        RP --> UserAgent: Redirect to OIDC VC-Authn request  
+        UserAgent -> OP: Follow OIDC VC-Authn request  
+    end
+end
+
+OP -> OP: Generate VC Presentation Request
+OP -> UserAgent: Return VC Presentation Request
+
+group IdentityWallet Communication Method
+    alt QR Code Scanned By IdentityWallet
+        loop UserAgent await IdentityWallet response
+            UserAgent -> OP: Request challenge status
+            OP --> UserAgent: "authentication_pending" response
+        end
+        note left: The UserAgent polls the OP until the IdentityWallet responds to the request
+        UserAgent -> IdentityWallet: Request Scanned
+        IdentityWallet -> IdentityWallet: Request validated
+        IdentityWallet -> User  : Present verify data request
+        User -> IdentityWallet : Clicks accept request
+        IdentityWallet -> IdentityWallet : Generate VC presentation
+        IdentityWallet -> OP : Submit VC presentation
+        UserAgent -> OP: Request challenge status
+    end
+
+    alt Deeplink invoked by IdentityWallet
+        UserAgent -> IdentityWallet: Deeplink invoked
+        IdentityWallet -> IdentityWallet: Request validated
+        IdentityWallet -> User  : Present verify data request
+        User -> IdentityWallet : Clicks accept request
+        IdentityWallet -> IdentityWallet : Generate VC presentation
+        IdentityWallet -> OP : Submit VC presentation
+        IdentityWallet -> UserAgent: Redirect to OP URI
+        UserAgent -> OP: Follow redirect
+    end
+end
+
+group OAuth Flow
+    alt Authorization Code Flow
+        OP -> UserAgent: Redirect request to RP redirect URI with authorization code
+        UserAgent -> RP: Follow redirect with authorization code
+        RP -> OP: Request token with authorization code
+        OP --> RP: Token response
+    end
+
+    alt Implicit Flow
+        OP -> UserAgent: Redirect request to RP redirect URI with token
+        UserAgent -> RP: Follow redirect with token
+    end
+end
+
+RP --> UserAgent: Success web page
+UserAgent --> User: ACK
+
 @enduml
