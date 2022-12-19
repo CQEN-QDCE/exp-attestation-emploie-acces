@@ -7,12 +7,13 @@ autonumber
 actor "Gestionnaire \nd'accès" as Gestionnaire
 database "DB" as DB #LightBlue
 actor Employé as Employee
-participant Émetteur as Emetteur
 participant "Boîte eMail" as Boite
-participant  "Portefeuille \nNumérique" as wallet    
-participant "Agent mediateur" as AM
-participant "ACA-Py" as ACAPY   
+participant  "Portefeuille \nNumérique" as Wallet
+participant "Agent médiateur" as AM
+participant "Émetteur \nService de vérification \nde courriel" as Emetteur
+participant "Émetteur \nACA-Py" as ACAPY   
 collections CANdy
+
 '**************
 'DÉFINITION DES LIENS
 '**************
@@ -21,17 +22,48 @@ Gestionnaire -> DB : Donner accès
 Employee -> Emetteur : Saisir courriel
 Emetteur <-> ACAPY : Demander lien d'invitation
 'Emetteur <-> DB : Vérification de l'accès
-Emetteur -> Boite : Envoyer lien à utilisation unique
-Employee -> Boite : Lire courriel et clic sur lien unique
-Boite -> Employee : Affichage du code QR
-wallet -> Employee : Lecture du code QR
+Emetteur -> Boite : Envoie un courriel avec un lien à utilisation unique
+Employee -> Boite : Lire courriel \net clic sur le lien à utilisation unique
+Boite -> Emetteur : Affichage du code QR et d'un deepLink
+
+group Méthode de communication du portefeuille numérique
+    alt Lecture du Code QR
+        Employee -> Wallet : ouvrir le portefeuille numérique
+        Wallet -> Emetteur : Lecture du Code QR par le portefeuille numérique
+    end
+
+    alt Deeplink invoqué
+        Employee -> Emetteur : Bouton avec lien de type DeepLink qui invoque l'ouverture du portefeuille numérique
+        Emetteur -> Wallet : ouverture automatique du portefeuille
+    end
+end
+Wallet -> Wallet : Lire URL d'invitation
+Wallet -> ACAPY : Demande de connexion sur l'URL d'invitation
 AM <--> ACAPY : Établissement de connexion
+
+loop L'Émetteur attend l'établissement d'une connexion sur l'invitation
+    Emetteur -> ACAPY : Request challenge status
+    ACAPY --> Emetteur : "connexion_establish" response
+    'ACAPY -> Emetteur : Webhook annonce une nouvelle demande d'attestation
+end
+
 Emetteur <--> DB : Lecture des privilèges
+Emetteur -> Emetteur : Générer l'attestation d'accès selon les privilèges
 Emetteur  -> ACAPY : Offre attestation d'accès
 AM <- ACAPY : Offre attestation d'accès
-AM -> wallet : Offre attestation d'accès
-CANdy <- wallet : Validation de l'authenticité
-wallet -> Employee : Acceptation de l'attestation
-ACAPY -> wallet : Réception de l'attestation
+AM -> Wallet : Offre attestation d'accès
+CANdy <- Wallet : Validation de l'authenticité
+
+group Consentement
+    alt Accepter
+        Wallet <- Employee : Acceptation de l'attestation
+        ACAPY -> Wallet : Réception de l'attestation
+        Wallet -> Wallet : Consigner l'attestation dans la zone sécurisé de l'application portefeuille
+    end
+
+    alt Refuser
+        Wallet <- Employee : Refuser l'attestation
+    end 
+end
 
 @enduml
