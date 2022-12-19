@@ -6,8 +6,9 @@ autonumber
 '*************
 actor Employé as Employee #Blue
 participant  "Portefeuille \nNumérique" as Wallet
+participant "Agent mediateur" as AM
 participant "NFC \nReader" as Reader
-participant "ESP8266 \nMicroController" as ESP8266
+participant "MicroController" as ESP8266
 participant "Vérificateur \nACA-Py" as ACAPY   
 collections CANdy
 database Journal #Orange
@@ -16,14 +17,55 @@ database Journal #Orange
 'DÉFINITION DES LIENS
 '**************
 Employee -> Wallet : Ouvrir Port-E
+Wallet -> Reader : Approcher portefeuille au lecteur
 Reader -> Wallet : Demande token
-Wallet -> Reader :  Présente token
-Reader -> ESP8266 : Demande attestation d'accès
-ESP8266 -> ACAPY : Demande attestation d'accès
-ACAPY -> Wallet : Demande preuve d'attestation d'accès
-Wallet -> CANdy : Présente preuve d'attestation d'accès
-CANdy -> ESP8266 : Présente preuve d'attestation d'accès
-ESP8266 -> Employee : Ouvre la porte
+Wallet -> Wallet : Lire URL d'invitation
+Wallet -> ACAPY : Demande de connexion sur l'URL d'invitation
+AM <--> ACAPY : Établissement de connexion
+
+loop MicroControlleur attend la demande d'ouvrir la porte d'un employé
+    ESP8266 -> ACAPY : Request challenge status
+    ACAPY --> ESP8266 : "connexion_establish" response
+    'ACAPY -> ESP8266 : Webhook annonce une nouvelle demande d'attestation
+end
+
+ESP8266 -> ACAPY : Générer la demande de preuve d'attestation d'accès
+ACAPY -> AM : Demande de preuve d'attestation d'accès
+AM -> Wallet : Demande preuve d'attestation d'accès
+Wallet <-> CANdy : Validation de l'authenticité
+note left: Est-ce qu'un portefeuille valide le DID et le schéma demande lors d'une demande de preuve
+
+group Consentement
+    alt Consentement
+        Wallet -> Wallet : Accepter de présenter la preuve d'accès demandé
+        Wallet -> Wallet : Sélectionner ou non de pré-approuvé les consentements subséquents pour la connexion de ce consommateur
+        Wallet -> AM : Présenter la preuve d'attestation d'accès
+    end
+
+    alt Consentement pré-approuvé
+        Wallet -> AM : Présente automatiquement la preuve d'attestation d'accès
+    end
+end
+
+AM -> ACAPY : Présente preuve d'attestation d'accès
+ACAPY <-> CANdy : Validation de l'authenticité
+ACAPY -> ESP8266 : Présente preuve d'attestation d'accès
+
+group Déterminer l'accès
+    ESP8266 -> ESP8266 : Déterminer l'accès
+    
+    alt Accès autorisé
+        ESP8266 -> Employee : Ouvre la porte
+        ESP8266 -> Employee : Signal sonore et visuel du succès
+    end 
+
+    alt Accès Refusé
+        ESP8266 -> Employee : Signal sonore et visuel du refus
+    end 
+end 
+
 ESP8266 -> Journal : Log 
+
+'Wallet -> Reader :  Présente token
 
 @enduml
