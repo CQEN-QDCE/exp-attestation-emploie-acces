@@ -27,7 +27,7 @@ Wallet -> CANdy : Présente preuve d'attestation d'accès
 CANdy -> Keycloak : Présente preuve d'attestation d'accès
 Keycloak -> Employee : Donner accès
 
-actor Employé as User #Blue
+actor Employé as User 
 participant Fureteur as UserAgent
 participant "Keycloak \n Service d'authentification (RP)" as RP
 participant "vc-authn-oidc \nFournisseur d'identités (OP)" as OP
@@ -35,29 +35,29 @@ participant "Portefeuille \nNumérique" as IdentityWallet
 collections CANdy
 
 User -> UserAgent: Saisir site web
-UserAgent -> RP: Fetch RP website
-RP --> UserAgent: Return website
-User -> UserAgent: Click "vc-authn challenge" button (e.g verify your email)
+UserAgent -> RP: Récupérer le site web RP
+RP --> UserAgent: Retourner le site web RP
+User -> UserAgent: Cliquez sur le bouton "vc-authn challenge" (par exemple, vérifiez votre adresse e-mail)
 
 group Demander stratégie d'authentification
-    alt UserAgent Generated Challenge
-        UserAgent -> UserAgent: Generate OIDC VC-Authn request  
-        UserAgent -> OP: Redirect to OIDC VC-Authn request
+    alt Challenge du fureteur généré
+        UserAgent -> UserAgent: Générer une demande OIDC VC-Authn  
+        UserAgent -> OP: Rediriger vers la demande OIDC VC-Authn
     end
 
-    alt RP Generated Challenge
+    alt Challenge du RP généré
         UserAgent -> RP: Create OIDC VC-Authn request
-        RP --> UserAgent: Redirect to OIDC VC-Authn request  
-        UserAgent -> OP: Follow OIDC VC-Authn request  
+        RP --> UserAgent: Rediriger vers la demande OIDC VC-Authn
+        UserAgent -> OP: Suivre la demande OIDC VC-Authn 
     end
 end
 
-OP -> OP: Generate VC Presentation Request
-OP -> UserAgent: Return VC Presentation Request
+OP -> OP: Générer une demande de présentation de VC
+OP -> UserAgent: Retourner la demande de présentation de VC
 
-group IdentityWallet Communication Method
-    alt QR Code Scanned By IdentityWallet
-        loop UserAgent await IdentityWallet response
+group IdentityWallet Méthode de communication
+    alt Code QR scanné par le portefeuille numérique 
+        loop Fureteur attend la réponse du portefeuille numérique 
             UserAgent -> OP: Request challenge status
             OP --> UserAgent: "authentication_pending" response
         end
@@ -106,7 +106,7 @@ UserAgent --> User: ACK
 'VERSION ANGLAISE
 '*************
 @startuml "vc-authn-oidc-flow"
-actor Employé as User #Blue
+actor Employé as User 
 participant Browser as UserAgent
 participant "Keycloak \n Relying Party (RP)" as RP
 participant "vc-authn-oidc \nIdentity Provider (OP)" as OP
