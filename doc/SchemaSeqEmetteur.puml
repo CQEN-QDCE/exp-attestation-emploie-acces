@@ -1,3 +1,7 @@
+'*************
+'VERSION FRANÇAISE
+'*************
+
 @startuml SchemaEmetteur
 autonumber
 
@@ -63,6 +67,80 @@ group Consentement
 
     alt Refuser
         Wallet <- Employee : Refuser l'attestation
+    end 
+end
+
+@enduml
+
+'*************
+'VERSION ANGLAISE
+'*************
+
+@startuml SchemaEmetteur-EN
+autonumber
+
+'*************
+'Déclaration de participants
+'*************
+actor "Access manager" as Gestionnaire
+database "DB" as DB #LightBlue
+actor Employee as Employee
+participant "Email Inbox" as Boite
+participant  "Wallet" as Wallet
+participant "Mediator agent" as AM
+participant "Email Verification Service\n Issuer" as Emetteur
+participant "ACA-Py\n Issuer" as ACAPY   
+collections CANdy
+
+'**************
+'DÉFINITION DES LIENS
+'**************
+Gestionnaire -> DB : Create user profile
+Gestionnaire -> DB : Grant access
+Employee -> Emetteur : Type in email address
+Emetteur <-> ACAPY : Request invitation link
+'Emetteur <-> DB : Vérification de l'accès
+Emetteur -> Boite : Sends an email with a one-time link
+Employee -> Boite : Read email \n and click on one-time link
+Boite -> Emetteur : Display QR code and a deepLink
+
+group  Wallet communication method
+    alt QR Code Reading
+        Employee -> Wallet : Open wallet
+        Wallet -> Emetteur : Read QR code with wallet
+    end
+
+    alt Deeplink invoked
+        Employee -> Emetteur : DeepLink button that invokes the opening of the digital wallet
+        Emetteur -> Wallet : Automatic wallet opening
+    end
+end
+Wallet -> Wallet : Read URL invitation
+Wallet -> ACAPY : Connection request on the invitation URL
+AM <--> ACAPY : Connection establishment
+
+loop The issuer waits for a connection to be established on the invitation
+    Emetteur -> ACAPY : Request challenge status
+    ACAPY --> Emetteur : "connexion_establish" response
+    'ACAPY -> Emetteur : Webhook annonce une nouvelle demande d'attestation
+end
+
+Emetteur <--> DB : Read privileges
+Emetteur -> Emetteur : Generate the access credential according to the privileges
+Emetteur  -> ACAPY : Offer access credential 
+AM <- ACAPY : Offer access credential 
+AM -> Wallet : Offer access credential 
+CANdy <- Wallet : Authenticity validation 
+
+group Consent
+    alt Accept
+        Wallet <- Employee : Accept credential
+        ACAPY -> Wallet : Receive credential
+        Wallet -> Wallet : Save credential in the secure enclave of ​​the wallet application
+    end
+
+    alt Refuse
+        Wallet <- Employee : Refuse credential
     end 
 end
 
